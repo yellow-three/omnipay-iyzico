@@ -137,7 +137,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $options;
     }
 
-    protected function mapLocale(string $locale): IyzicoLocale
+    protected function mapLocale(string $locale): string
     {
         return match (strtoupper($locale)) {
             'EN' => IyzicoLocale::EN,
@@ -145,38 +145,34 @@ abstract class AbstractRequest extends BaseAbstractRequest
         };
     }
 
-    protected function mapCurrency(string $currency): IyzicoCurrency
+    protected function mapCurrency(string $currency): string
     {
         return match (strtoupper($currency)) {
+            'TRY', 'TL' => IyzicoCurrency::TL,
             'USD' => IyzicoCurrency::USD,
             'EUR' => IyzicoCurrency::EUR,
             'GBP' => IyzicoCurrency::GBP,
             'RUB' => IyzicoCurrency::RUB,
-            'AZN' => IyzicoCurrency::AZN,
-            'KWD' => IyzicoCurrency::KWD,
-            'SAR' => IyzicoCurrency::SAR,
-            'EGP' => IyzicoCurrency::EGP,
-            'JOD' => IyzicoCurrency::JOD,
-            'AED' => IyzicoCurrency::AED,
-            'BHD' => IyzicoCurrency::BHD,
-            'QAR' => IyzicoCurrency::QAR,
-            default => IyzicoCurrency::TRY,
+            'IRR' => IyzicoCurrency::IRR,
+            'NOK' => IyzicoCurrency::NOK,
+            'CHF' => IyzicoCurrency::CHF,
+            default => IyzicoCurrency::TL,
         };
     }
 
-    protected function mapPaymentChannel(string $channel): IyzicoPaymentChannel
+    protected function mapPaymentChannel(string $channel): string
     {
         return match (strtoupper($channel)) {
             'MOBILE' => IyzicoPaymentChannel::MOBILE,
-            'WEB_POS' => IyzicoPaymentChannel::WEB_POS,
+            'MOBILE_WEB' => IyzicoPaymentChannel::MOBILE_WEB,
             default => IyzicoPaymentChannel::WEB,
         };
     }
 
-    protected function mapPaymentGroup(string $group): IyzicoPaymentGroup
+    protected function mapPaymentGroup(string $group): string
     {
         return match (strtoupper($group)) {
-            'INHERITED' => IyzicoPaymentGroup::INHERITED,
+            'LISTING' => IyzicoPaymentGroup::LISTING,
             'SUBSCRIPTION' => IyzicoPaymentGroup::SUBSCRIPTION,
             default => IyzicoPaymentGroup::PRODUCT,
         };
