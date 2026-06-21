@@ -134,4 +134,109 @@ class GatewayTest extends TestCase
 
         $this->assertInstanceOf(\Omnipay\Iyzico\Message\FetchTransactionRequest::class, $request);
     }
+
+    public function testGetDefaultParameters(): void
+    {
+        $defaults = $this->gateway->getDefaultParameters();
+
+        $this->assertArrayHasKey('apiKey', $defaults);
+        $this->assertArrayHasKey('secretKey', $defaults);
+        $this->assertArrayHasKey('baseUrl', $defaults);
+        $this->assertArrayHasKey('testMode', $defaults);
+        $this->assertArrayHasKey('locale', $defaults);
+        $this->assertArrayHasKey('conversationId', $defaults);
+        $this->assertArrayHasKey('paymentChannel', $defaults);
+        $this->assertArrayHasKey('paymentGroup', $defaults);
+        $this->assertArrayHasKey('currency', $defaults);
+        $this->assertArrayHasKey('installment', $defaults);
+        $this->assertArrayHasKey('identityNumber', $defaults);
+        $this->assertArrayHasKey('secure3d', $defaults);
+
+        $this->assertSame('', $defaults['apiKey']);
+        $this->assertSame('', $defaults['secretKey']);
+        $this->assertSame('https://sandbox-api.iyzipay.com', $defaults['baseUrl']);
+        $this->assertTrue($defaults['testMode']);
+        $this->assertSame('TR', $defaults['locale']);
+        $this->assertSame('', $defaults['conversationId']);
+        $this->assertSame('WEB', $defaults['paymentChannel']);
+        $this->assertSame('PRODUCT', $defaults['paymentGroup']);
+        $this->assertSame('TRY', $defaults['currency']);
+        $this->assertSame(1, $defaults['installment']);
+        $this->assertSame('', $defaults['identityNumber']);
+        $this->assertTrue($defaults['secure3d']);
+    }
+
+    public function testSetTestMode(): void
+    {
+        $this->gateway->setTestMode(true);
+        $this->assertTrue($this->gateway->getTestMode());
+        $this->assertSame('https://sandbox-api.iyzipay.com', $this->gateway->getBaseUrl());
+
+        $this->gateway->setTestMode(false);
+        $this->assertFalse($this->gateway->getTestMode());
+        $this->assertSame('https://api.iyzipay.com', $this->gateway->getBaseUrl());
+    }
+
+    public function testSetAndGetConversationId(): void
+    {
+        $this->gateway->setConversationId('conv_123');
+        $this->assertSame('conv_123', $this->gateway->getConversationId());
+    }
+
+    public function testSetAndGetPaymentChannel(): void
+    {
+        $this->gateway->setPaymentChannel('MOBILE');
+        $this->assertSame('MOBILE', $this->gateway->getPaymentChannel());
+    }
+
+    public function testSetAndGetPaymentGroup(): void
+    {
+        $this->gateway->setPaymentGroup('SUBSCRIPTION');
+        $this->assertSame('SUBSCRIPTION', $this->gateway->getPaymentGroup());
+    }
+
+    public function testAuthorizeRequestCreation(): void
+    {
+        $request = $this->gateway->authorize([
+            'amount' => '100.00',
+            'card' => [
+                'number' => '4111111111111111',
+                'expiryMonth' => '12',
+                'expiryYear' => '2030',
+                'cvv' => '123',
+                'firstName' => 'Test',
+                'lastName' => 'User',
+            ],
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\AuthorizeRequest::class, $request);
+    }
+
+    public function testCheckoutRequestCreation(): void
+    {
+        $request = $this->gateway->checkout([
+            'amount' => '100.00',
+            'currency' => 'TRY',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\CheckoutRequest::class, $request);
+    }
+
+    public function testCheckoutStatusRequestCreation(): void
+    {
+        $refMethod = new \ReflectionMethod($this->gateway, 'checkoutStatus');
+        $returnType = $refMethod->getReturnType();
+
+        $this->assertNotNull($returnType);
+        $this->assertSame('Omnipay\Iyzico\Message\CheckoutStatusRequest', $returnType->getName());
+    }
+
+    public function testCompletePurchaseRequestCreation(): void
+    {
+        $request = $this->gateway->completePurchase([
+            'token' => 'token_123',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\CompletePurchaseRequest::class, $request);
+    }
 }

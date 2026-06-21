@@ -33,7 +33,7 @@ class CheckoutStatusRequest extends AbstractRequest
         return $this->getParameter('token');
     }
 
-    public function setToken(string $value): static
+    public function setToken($value): static
     {
         return $this->setParameter('token', $value);
     }
