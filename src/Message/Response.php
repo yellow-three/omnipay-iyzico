@@ -121,6 +121,11 @@ class Response extends AbstractResponse implements RedirectResponseInterface
         return $this->data['paymentId'] ?? null;
     }
 
+    public function getPaidPrice(): ?string
+    {
+        return $this->data['paidPrice'] ?? null;
+    }
+
     public function getCheckoutFormContent(): ?string
     {
         return $this->data['checkoutFormContent'] ?? null;

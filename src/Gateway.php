@@ -6,6 +6,17 @@ use Omnipay\Common\AbstractGateway;
 
 class Gateway extends AbstractGateway
 {
+    /**
+     * setTestMode() çağrıldığında baseUrl buradan türetilir. setBaseUrl() ile elle
+     * özel bir URL verirsen (örn. iyzico ileride farklı bir endpoint sağlarsa) o
+     * değer kalıcı olur — sonraki bir setTestMode() çağrısı onu tekrar ezer, bu
+     * yüzden ikisini aynı anda kullanmak istemiyorsan sadece birini çağır.
+     */
+    protected array $endpoints = [
+        'test' => 'https://sandbox-api.iyzipay.com',
+        'live' => 'https://api.iyzipay.com',
+    ];
+
     public function getName(): string
     {
         return 'Iyzico';
@@ -16,8 +27,9 @@ class Gateway extends AbstractGateway
         return [
             'apiKey' => '',
             'secretKey' => '',
-            'baseUrl' => 'https://sandbox-api.iyzipay.com',
-            'testMode' => false,
+            'baseUrl' => $this->endpoints['test'],
+            // Varsayılan olarak sandbox: yanlışlıkla canlı ortama istek gitmesin.
+            'testMode' => true,
             'locale' => 'TR',
             'conversationId' => '',
             'paymentChannel' => 'WEB',
@@ -27,6 +39,19 @@ class Gateway extends AbstractGateway
             'identityNumber' => '',
             'secure3d' => true,
         ];
+    }
+
+    public function getTestMode(): bool
+    {
+        return (bool) $this->getParameter('testMode');
+    }
+
+    public function setTestMode($value): static
+    {
+        $this->setParameter('testMode', (bool) $value);
+        $this->setParameter('baseUrl', $value ? $this->endpoints['test'] : $this->endpoints['live']);
+
+        return $this;
     }
 
     public function getApiKey(): string

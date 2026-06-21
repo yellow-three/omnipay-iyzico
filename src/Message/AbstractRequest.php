@@ -12,11 +12,6 @@ use Omnipay\Common\Message\AbstractRequest as BaseAbstractRequest;
 
 abstract class AbstractRequest extends BaseAbstractRequest
 {
-    protected array $endpoints = [
-        'test' => 'https://sandbox-api.iyzipay.com',
-        'live' => 'https://api.iyzipay.com',
-    ];
-
     public function getApiKey(): string
     {
         return $this->getParameter('apiKey');
