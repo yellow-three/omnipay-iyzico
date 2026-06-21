@@ -3,7 +3,7 @@
 namespace Omnipay\Iyzico\Message;
 
 use Iyzipay\Model\ThreedsInitialize;
-use Iyzipay\Model\PaymentAuth;
+use Iyzipay\Model\PaymentPreAuth;
 
 class AuthorizeRequest extends AbstractRequest
 {
@@ -56,20 +56,14 @@ class AuthorizeRequest extends AbstractRequest
         if ($data['secure3d']) {
             $result = ThreedsInitialize::create($request, $options);
 
-            $response = new RedirectResponse($this, $result);
-            $response->setRedirectUrl($result->getPaymentPageUrl() ?? '');
-            $response->setRedirectData([
-                'token' => $result->getToken(),
-            ]);
-
-            if ($result->getStatus() === 'success') {
-                $response->setRedirectMethod('GET');
-            }
-
-            return $response;
+            // Same as PurchaseRequest: ThreedsInitialize returns HTML (getHtmlContent()),
+            // not a redirect URL or token. Pre-auth via 3DS still goes through the same
+            // /payment/3dsecure/initialize endpoint; only the completion step differs
+            // (handled later via CompletePurchaseRequest -> ThreedsPayment::create()).
+            return new RedirectResponse($this, $result);
         }
 
-        $result = PaymentAuth::create($request, $options);
+        $result = PaymentPreAuth::create($request, $options);
 
         return new Response($this, $result);
     }

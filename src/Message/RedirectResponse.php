@@ -6,7 +6,7 @@ use Omnipay\Common\Message\RedirectResponseInterface;
 
 class RedirectResponse extends Response implements RedirectResponseInterface
 {
-    private string $redirectUrl;
+    private string $redirectUrl = '';
     private string $redirectMethod = 'POST';
     private array $redirectData = [];
 

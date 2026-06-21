@@ -58,17 +58,11 @@ class PurchaseRequest extends AbstractRequest
         if ($data['secure3d']) {
             $result = ThreedsInitialize::create($request, $options);
 
-            $response = new RedirectResponse($this, $result);
-            $response->setRedirectUrl($result->getPaymentPageUrl() ?? '');
-            $response->setRedirectData([
-                'token' => $result->getToken(),
-            ]);
-
-            if ($result->getStatus() === 'success') {
-                $response->setRedirectMethod('GET');
-            }
-
-            return $response;
+            // ThreedsInitialize never returns a redirect URL or token — it returns an
+            // HTML form (getHtmlContent()) that must be rendered directly in the browser,
+            // which auto-submits to the issuing bank's 3DS page. Check
+            // $response->getHtmlContent() before falling back to getRedirectUrl().
+            return new RedirectResponse($this, $result);
         }
 
         $result = Payment::create($request, $options);

@@ -2,7 +2,7 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Iyzipay\Model\CheckoutFormAuth;
+use Iyzipay\Model\CheckoutForm;
 
 class CheckoutStatusRequest extends AbstractRequest
 {
@@ -11,8 +11,6 @@ class CheckoutStatusRequest extends AbstractRequest
         $this->validate('token');
 
         return [
-            'locale' => $this->getLocale(),
-            'conversationId' => $this->getConversationId(),
             'token' => $this->getToken(),
         ];
     }
@@ -21,12 +19,11 @@ class CheckoutStatusRequest extends AbstractRequest
     {
         $options = $this->createIyzicoOptions();
 
-        $request = new \Iyzipay\Request\CreateCheckoutFormAuthRequest();
-        $request->setLocale($this->mapLocale($data['locale']));
-        $request->setConversationId($data['conversationId']);
+        // RetrieveCheckoutFormRequest only accepts a token — no locale/conversationId.
+        $request = new \Iyzipay\Request\RetrieveCheckoutFormRequest();
         $request->setToken($data['token']);
 
-        $result = CheckoutFormAuth::create($request, $options);
+        $result = CheckoutForm::retrieve($request, $options);
 
         return new Response($this, $result);
     }

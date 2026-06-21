@@ -2,7 +2,7 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Iyzipay\Model\RetrievePayment;
+use Iyzipay\Model\Payment;
 
 class FetchTransactionRequest extends AbstractRequest
 {
@@ -26,7 +26,7 @@ class FetchTransactionRequest extends AbstractRequest
         $request->setConversationId($data['conversationId']);
         $request->setPaymentId($data['paymentId']);
 
-        $result = RetrievePayment::create($request, $options);
+        $result = Payment::retrieve($request, $options);
 
         return new Response($this, $result);
     }

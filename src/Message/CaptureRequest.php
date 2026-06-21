@@ -2,19 +2,19 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Iyzipay\Model\PaymentCompletion;
+use Iyzipay\Model\PaymentPostAuth;
 
 class CaptureRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('paymentId', 'conversationId');
+        $this->validate('paymentId');
 
         return [
-            'locale' => $this->getLocale(),
-            'conversationId' => $this->getConversationId(),
             'paymentId' => $this->getPaymentId(),
             'paidPrice' => $this->getAmount(),
+            'currency' => $this->getCurrency(),
+            'clientIp' => $this->getClientIp(),
         ];
     }
 
@@ -22,13 +22,15 @@ class CaptureRequest extends AbstractRequest
     {
         $options = $this->createIyzicoOptions();
 
-        $request = new \Iyzipay\Request\CreatePaymentCompletionRequest();
-        $request->setLocale($this->mapLocale($data['locale']));
-        $request->setConversationId($data['conversationId']);
+        // /payment/postauth only accepts paymentId, paidPrice, ip and currency —
+        // it has no locale/conversationId fields (unlike most other iyzico requests).
+        $request = new \Iyzipay\Request\CreatePaymentPostAuthRequest();
         $request->setPaymentId($data['paymentId']);
         $request->setPaidPrice($data['paidPrice']);
+        $request->setCurrency($this->mapCurrency($data['currency']));
+        $request->setIp($data['clientIp'] ?? '127.0.0.1');
 
-        $result = PaymentCompletion::create($request, $options);
+        $result = PaymentPostAuth::create($request, $options);
 
         return new Response($this, $result);
     }

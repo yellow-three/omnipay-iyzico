@@ -2,19 +2,29 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Iyzipay\Model\PaymentAuth;
+use Iyzipay\Model\ThreedsPayment;
 
+/**
+ * Completes a 3D Secure payment started by PurchaseRequest/AuthorizeRequest.
+ *
+ * After the buyer finishes the bank's 3DS challenge, iyzico POSTs to your callbackUrl
+ * with (at least) paymentId, conversationId, conversationData and mdStatus. Pass those
+ * straight through here — this calls /payment/3dsecure/auth, which is the only way to
+ * actually finalize a payment that was initialized via ThreedsInitialize.
+ *
+ * This is unrelated to the Checkout Form flow's token-based completion — that's handled
+ * by CheckoutStatusRequest instead.
+ */
 class CompletePurchaseRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('token');
+        $this->validate('paymentId', 'conversationData');
 
         return [
-            'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
             'paymentId' => $this->getPaymentId(),
-            'token' => $this->getToken(),
+            'conversationData' => $this->getConversationData(),
         ];
     }
 
@@ -22,26 +32,23 @@ class CompletePurchaseRequest extends AbstractRequest
     {
         $options = $this->createIyzicoOptions();
 
-        $request = new \Iyzipay\Request\CreatePaymentRequest();
-        $request->setLocale($this->mapLocale($data['locale']));
+        $request = new \Iyzipay\Request\CreateThreedsPaymentRequest();
         $request->setConversationId($data['conversationId']);
+        $request->setPaymentId($data['paymentId']);
+        $request->setConversationData($data['conversationData']);
 
-        if (!empty($data['paymentId'])) {
-            $request->setPaymentId($data['paymentId']);
-        }
-
-        $result = PaymentAuth::create($request, $options);
+        $result = ThreedsPayment::create($request, $options);
 
         return new Response($this, $result);
     }
 
-    public function getToken(): string
+    public function getConversationData(): string
     {
-        return $this->getParameter('token');
+        return $this->getParameter('conversationData');
     }
 
-    public function setToken(string $value): static
+    public function setConversationData(string $value): static
     {
-        return $this->setParameter('token', $value);
+        return $this->setParameter('conversationData', $value);
     }
 }

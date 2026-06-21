@@ -8,17 +8,53 @@ use Omnipay\Common\Message\RequestInterface;
 
 class Response extends AbstractResponse implements RedirectResponseInterface
 {
+    /**
+     * Fields read off an iyzico SDK model object via its getters.
+     *
+     * iyzico's model classes (Payment, Refund, ThreedsInitialize, ...) don't expose a
+     * getRawResult()/toArray() method, so we can't reliably round-trip them through JSON.
+     * Instead we pull the known fields directly via their own getters when present.
+     */
+    private const IYZICO_FIELDS = [
+        'status', 'errorCode', 'errorMessage', 'errorGroup', 'locale', 'systemTime',
+        'conversationId', 'paymentId', 'paymentStatus', 'price', 'paidPrice', 'currency',
+        'installment', 'fraudStatus', 'basketId', 'cardType', 'cardAssociation', 'cardFamily',
+        'cardToken', 'cardUserKey', 'binNumber', 'lastFourDigits', 'authCode', 'connectorName',
+        'paymentTransactionId', 'token', 'tokenExpireTime', 'paymentPageUrl',
+        'checkoutFormContent', 'htmlContent', 'mdStatus', 'callbackUrl', 'signature',
+    ];
+
     public function __construct(RequestInterface $request, mixed $data)
     {
         $this->request = $request;
+        $this->data = $this->normalizeData($data);
+    }
 
-        if (is_object($data) && method_exists($data, 'getRawResult')) {
-            $this->data = json_decode($data->getRawResult(), true);
-        } elseif (is_string($data)) {
-            $this->data = json_decode($data, true);
-        } else {
-            $this->data = $data;
+    private function normalizeData(mixed $data): array
+    {
+        if (is_array($data)) {
+            return $data;
         }
+
+        if (is_string($data)) {
+            return json_decode($data, true) ?? [];
+        }
+
+        if (is_object($data)) {
+            $result = [];
+
+            foreach (self::IYZICO_FIELDS as $field) {
+                $getter = 'get'.ucfirst($field);
+
+                if (method_exists($data, $getter)) {
+                    $result[$field] = $data->{$getter}();
+                }
+            }
+
+            return $result;
+        }
+
+        return [];
     }
 
     public function isSuccessful(): bool
