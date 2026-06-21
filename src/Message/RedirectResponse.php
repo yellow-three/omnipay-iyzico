@@ -30,7 +30,8 @@ class RedirectResponse extends Response implements RedirectResponseInterface
 
     public function isRedirect(): bool
     {
-        return true;
+        return $this->getStatus() === 'success'
+            && ($this->getRedirectUrl() !== '' || $this->getHtmlContent() !== null);
     }
 
     public function getRedirectUrl(): string

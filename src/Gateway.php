@@ -35,7 +35,7 @@ class Gateway extends AbstractGateway
             'paymentChannel' => 'WEB',
             'paymentGroup' => 'PRODUCT',
             'currency' => 'TRY',
-            'installment' => 0,
+            'installment' => 1,
             'identityNumber' => '',
             'secure3d' => true,
         ];
