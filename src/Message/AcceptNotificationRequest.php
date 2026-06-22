@@ -2,32 +2,12 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Message\NotificationInterface;
-use Omnipay\Common\Message\AbstractRequest as BaseAbstractRequest;
 
-class AcceptNotificationRequest extends BaseAbstractRequest implements NotificationInterface
+class AcceptNotificationRequest extends AbstractRequest implements NotificationInterface
 {
-    /**
-     * iyzico mdStatus values:
-     * 1 = 3DS authentication successful
-     * 0 = 3DS authentication failed / not attempted
-     * 2 = Card holder not registered to 3DS
-     * 3 = Integration not configured for 3DS
-     * 4 = System error
-     * 5 = Card type not supported for 3DS
-     * 6 = Card holder not registered for 3DS (card network side)
-     */
-    private const MD_STATUS_SUCCESS = 1;
-
-    /**
-     * setData() accepts the raw callback parameters (e.g. from $_POST).
-     * This is NOT the standard Omnipay getData/sendData — AcceptNotification
-     * receives an incoming webhook and determines the payment status.
-     */
     public function initialize(array $parameters = [])
     {
-        // Extract known parameters for parent initialize, store the rest as notification data.
         $notificationData = [];
 
         foreach ($parameters as $key => $value) {
@@ -42,12 +22,10 @@ class AcceptNotificationRequest extends BaseAbstractRequest implements Notificat
         return parent::initialize($parameters);
     }
 
-    /**
-     * Override setParameter to route unknown keys into the data array.
-     */
     public function setNotificationData(array $data): static
     {
         $this->data = $data;
+
         return $this;
     }
 
@@ -73,22 +51,11 @@ class AcceptNotificationRequest extends BaseAbstractRequest implements Notificat
 
     public function getTransactionReference(): ?string
     {
-        return $this->data['paymentId'] ?? null;
+        $data = $this->getData();
+
+        return $data['paymentId'] ?? $data['iyziPaymentId'] ?? $data['token'] ?? $this->getParameter('paymentId') ?? $this->getParameter('token') ?? null;
     }
 
-    /**
-     * Determine the transaction status based on the callback data.
-     *
-     * For 3DS callbacks (mdStatus present):
-     * - mdStatus=1 + status=success → STATUS_COMPLETED
-     * - mdStatus=1 + status=failure → STATUS_FAILED
-     * - mdStatus!=1 → STATUS_FAILED
-     *
-     * For non-3DS callbacks (CheckoutForm/PWI):
-     * - status=success → STATUS_COMPLETED
-     * - status=pending → STATUS_PENDING
-     * - otherwise → STATUS_FAILED
-     */
     public function getTransactionStatus(): string
     {
         $data = $this->getData();
@@ -97,46 +64,75 @@ class AcceptNotificationRequest extends BaseAbstractRequest implements Notificat
             return NotificationInterface::STATUS_FAILED;
         }
 
-        // Check mdStatus for 3DS callbacks
-        if (isset($data['mdStatus'])) {
-            $mdStatus = (int) $data['mdStatus'];
+        $status = strtoupper($data['status'] ?? '');
 
-            if ($mdStatus !== self::MD_STATUS_SUCCESS) {
-                return NotificationInterface::STATUS_FAILED;
-            }
-        }
-
-        // Check status field
-        $status = $data['status'] ?? '';
-
-        return match (strtolower($status)) {
-            'success' => NotificationInterface::STATUS_COMPLETED,
-            'pending' => NotificationInterface::STATUS_PENDING,
-            default => NotificationInterface::STATUS_FAILED,
+        return match ($status) {
+            'SUCCESS' => NotificationInterface::STATUS_COMPLETED,
+            'FAILURE' => NotificationInterface::STATUS_FAILED,
+            default => NotificationInterface::STATUS_PENDING,
         };
     }
 
-    /**
-     * Return a human-readable message based on the callback data.
-     */
     public function getMessage(): ?string
     {
         $data = $this->getData();
 
-        if (isset($data['errorMessage'])) {
-            $msg = $data['errorMessage'];
-            if (isset($data['errorCode'])) {
-                $msg .= ' (errorCode: ' . $data['errorCode'] . ')';
-            }
-            return $msg;
+        if (empty($data)) {
+            return 'No notification data received';
         }
 
-        $status = $data['status'] ?? null;
+        return sprintf('Payment status: %s (event: %s)', $data['status'] ?? 'UNKNOWN', $data['iyziEventType'] ?? 'UNKNOWN');
+    }
 
-        return match ($status) {
-            'success' => 'Payment completed successfully',
-            'pending' => 'Payment is pending',
-            default => 'Unknown payment status',
-        };
+    public function getSignature(): string
+    {
+        return $this->getParameter('signature');
+    }
+
+    public function setSignature(string $value): static
+    {
+        return $this->setParameter('signature', $value);
+    }
+
+    public function isValid(): bool
+    {
+        $secretKey = $this->getParameter('secretKey');
+        $data = $this->getData();
+
+        if (empty($secretKey) || empty($data)) {
+            return false;
+        }
+
+        $iyziEventType = $data['iyziEventType'] ?? '';
+        $paymentConversationId = $data['paymentConversationId'] ?? '';
+        $status = $data['status'] ?? '';
+
+        // HPP format is identified by the presence of a `token` parameter.
+        // `token` has a setter on Omnipay Common's AbstractRequest, so it lives
+        // in the ParameterBag, not in notification data ($this->data).
+        // Direct format does NOT have a `token` field.
+        $isHpp = !empty($this->getParameter('token'));
+
+        if ($isHpp) {
+            $message = $secretKey
+                . $iyziEventType
+                . ($data['iyziPaymentId'] ?? '')
+                . $this->getParameter('token')
+                . $paymentConversationId
+                . $status;
+        } else {
+            // `paymentId` has a setter on our AbstractRequest, so it also lives
+            // in the ParameterBag. Fall back to $data for direct array input.
+            $paymentId = $data['paymentId'] ?? $this->getParameter('paymentId') ?? '';
+            $message = $secretKey
+                . $iyziEventType
+                . $paymentId
+                . $paymentConversationId
+                . $status;
+        }
+
+        $computed = hash_hmac('sha256', $message, $secretKey);
+
+        return hash_equals($computed, (string) $this->getSignature());
     }
 }

@@ -20,160 +20,184 @@ class AcceptNotificationRequestTest extends TestCase
         $this->request = new AcceptNotificationRequest($httpClient, $httpRequest);
     }
 
-    public function testTransactionReferenceReturnsPaymentId(): void
+    public function testDirectFormatSuccess(): void
     {
         $this->request->initialize([
             'paymentId' => 'pay_123',
-            'conversationData' => 'conv_data_123',
-            'mdStatus' => 1,
-            'status' => 'success',
+            'iyziEventType' => 'DIRECT',
+            'paymentConversationId' => 'conv_123',
+            'status' => 'SUCCESS',
         ]);
 
+        $this->assertSame(NotificationInterface::STATUS_COMPLETED, $this->request->getTransactionStatus());
         $this->assertSame('pay_123', $this->request->getTransactionReference());
+        $this->assertStringContainsString('SUCCESS', $this->request->getMessage());
+        $this->assertStringContainsString('DIRECT', $this->request->getMessage());
     }
 
-    public function testTransactionReferenceReturnsNullWhenNoPaymentId(): void
-    {
-        $this->request->initialize([
-            'status' => 'success',
-        ]);
-
-        $this->assertNull($this->request->getTransactionReference());
-    }
-
-    public function testTransactionStatusCompletedFor3dsSuccess(): void
+    public function testDirectFormatFailure(): void
     {
         $this->request->initialize([
             'paymentId' => 'pay_123',
-            'mdStatus' => 1,
-            'status' => 'success',
-        ]);
-
-        $this->assertSame(NotificationInterface::STATUS_COMPLETED, $this->request->getTransactionStatus());
-    }
-
-    public function testTransactionStatusFailedFor3dsMdStatus0(): void
-    {
-        $this->request->initialize([
-            'paymentId' => 'pay_123',
-            'mdStatus' => 0,
-            'status' => 'success',
+            'iyziEventType' => 'DIRECT',
+            'paymentConversationId' => 'conv_123',
+            'status' => 'FAILURE',
         ]);
 
         $this->assertSame(NotificationInterface::STATUS_FAILED, $this->request->getTransactionStatus());
     }
 
-    public function testTransactionStatusFailedFor3dsMdStatus4(): void
+    public function testDirectFormatInitThreedsIsPending(): void
     {
         $this->request->initialize([
             'paymentId' => 'pay_123',
-            'mdStatus' => 4,
-            'status' => 'failure',
-        ]);
-
-        $this->assertSame(NotificationInterface::STATUS_FAILED, $this->request->getTransactionStatus());
-    }
-
-    public function testTransactionStatusCompletedForNon3dsSuccess(): void
-    {
-        $this->request->initialize([
-            'status' => 'success',
-        ]);
-
-        $this->assertSame(NotificationInterface::STATUS_COMPLETED, $this->request->getTransactionStatus());
-    }
-
-    public function testTransactionStatusPending(): void
-    {
-        $this->request->initialize([
-            'status' => 'pending',
+            'iyziEventType' => 'DIRECT',
+            'paymentConversationId' => 'conv_123',
+            'status' => 'INIT_THREEDS',
         ]);
 
         $this->assertSame(NotificationInterface::STATUS_PENDING, $this->request->getTransactionStatus());
     }
 
-    public function testTransactionStatusFailedForFailure(): void
+    public function testHppFormatSuccess(): void
     {
         $this->request->initialize([
-            'status' => 'failure',
-            'errorCode' => '5001',
-            'errorMessage' => 'Payment failed',
+            'token' => 'tok_123',
+            'iyziPaymentId' => 'iyzi_123',
+            'iyziEventType' => 'HPP',
+            'paymentConversationId' => 'conv_123',
+            'status' => 'SUCCESS',
         ]);
 
-        $this->assertSame(NotificationInterface::STATUS_FAILED, $this->request->getTransactionStatus());
+        $this->assertSame(NotificationInterface::STATUS_COMPLETED, $this->request->getTransactionStatus());
+        $this->assertSame('iyzi_123', $this->request->getTransactionReference());
     }
 
-    public function testTransactionStatusFailedForEmptyData(): void
-    {
-        $this->request->initialize([]);
-
-        $this->assertSame(NotificationInterface::STATUS_FAILED, $this->request->getTransactionStatus());
-    }
-
-    public function testMessageReturnsErrorMessage(): void
+    public function testHppFormatTransactionReferenceFallback(): void
     {
         $this->request->initialize([
-            'status' => 'failure',
-            'errorCode' => '5001',
-            'errorMessage' => 'Payment failed',
+            'token' => 'tok_123',
         ]);
 
-        $this->assertStringContainsString('Payment failed', $this->request->getMessage());
-        $this->assertStringContainsString('5001', $this->request->getMessage());
+        $this->assertSame('tok_123', $this->request->getTransactionReference());
     }
 
-    public function testMessageReturnsSuccessMessage(): void
+    public function testIsValidDirectWithValidSignature(): void
+    {
+        $secretKey = 'test_secret_key';
+        $paymentId = 'pay_123';
+        $iyziEventType = 'DIRECT';
+        $paymentConversationId = 'conv_123';
+        $status = 'SUCCESS';
+
+        $expectedSignature = hash_hmac('sha256', $secretKey . $iyziEventType . $paymentId . $paymentConversationId . $status, $secretKey);
+
+        // Call initialize BEFORE setSecretKey — Omnipay's parent::initialize() rebuilds the ParameterBag.
+        $this->request->initialize([
+            'paymentId' => $paymentId,
+            'iyziEventType' => $iyziEventType,
+            'paymentConversationId' => $paymentConversationId,
+            'status' => $status,
+            'signature' => $expectedSignature,
+        ]);
+        $this->request->setSecretKey($secretKey);
+
+        $this->assertTrue($this->request->isValid());
+    }
+
+    public function testIsValidDirectWithInvalidSignature(): void
+    {
+        $secretKey = 'test_secret_key';
+        $paymentId = 'pay_123';
+        $iyziEventType = 'DIRECT';
+        $paymentConversationId = 'conv_123';
+        $status = 'SUCCESS';
+
+        $this->request->initialize([
+            'paymentId' => $paymentId,
+            'iyziEventType' => $iyziEventType,
+            'paymentConversationId' => $paymentConversationId,
+            'status' => $status,
+            'signature' => 'invalid_signature_value',
+        ]);
+        $this->request->setSecretKey($secretKey);
+
+        $this->assertFalse($this->request->isValid());
+    }
+
+    public function testIsValidHppWithValidSignature(): void
+    {
+        $secretKey = 'test_secret_key';
+        $iyziEventType = 'HPP_EVENT';
+        $iyziPaymentId = 'iyzi_789';
+        $token = 'tok_456';
+        $paymentConversationId = 'conv_789';
+        $status = 'SUCCESS';
+
+        $expectedSignature = hash_hmac('sha256', $secretKey . $iyziEventType . $iyziPaymentId . $token . $paymentConversationId . $status, $secretKey);
+
+        // Call initialize BEFORE setSecretKey — Omnipay's parent::initialize() rebuilds the ParameterBag.
+        $this->request->initialize([
+            'token' => $token,
+            'iyziPaymentId' => $iyziPaymentId,
+            'iyziEventType' => $iyziEventType,
+            'paymentConversationId' => $paymentConversationId,
+            'status' => $status,
+            'signature' => $expectedSignature,
+        ]);
+        $this->request->setSecretKey($secretKey);
+
+        $this->assertTrue($this->request->isValid());
+    }
+
+    public function testIsValidWithEmptySecretKeyReturnsFalse(): void
     {
         $this->request->initialize([
-            'mdStatus' => 1,
-            'status' => 'success',
             'paymentId' => 'pay_123',
+            'iyziEventType' => 'DIRECT',
+            'paymentConversationId' => 'conv_123',
+            'status' => 'SUCCESS',
+            'signature' => 'some_signature',
         ]);
 
-        $this->assertSame('Payment completed successfully', $this->request->getMessage());
+        $this->assertFalse($this->request->isValid());
     }
 
-    public function testMessageReturnsPendingMessage(): void
-    {
-        $this->request->initialize([
-            'status' => 'pending',
-        ]);
-
-        $this->assertSame('Payment is pending', $this->request->getMessage());
-    }
-
-    public function testMessageReturnsUnknownForNoStatus(): void
+    public function testEmptyDataReturnsStatusFailed(): void
     {
         $this->request->initialize([]);
 
-        $this->assertStringContainsString('Unknown', $this->request->getMessage() ?? '');
+        $this->assertSame(NotificationInterface::STATUS_FAILED, $this->request->getTransactionStatus());
+    }
+
+    public function testEmptyDataReturnsNoNotificationMessage(): void
+    {
+        $this->request->initialize([]);
+
+        $this->assertSame('No notification data received', $this->request->getMessage());
     }
 
     public function testNotificationInterfaceImplementation(): void
     {
         $this->request->initialize([
             'paymentId' => 'pay_123',
-            'mdStatus' => 1,
-            'status' => 'success',
+            'iyziEventType' => 'DIRECT',
+            'paymentConversationId' => 'conv_123',
+            'status' => 'SUCCESS',
         ]);
 
         $this->assertInstanceOf(NotificationInterface::class, $this->request);
-        $this->assertSame('pay_123', $this->request->getTransactionReference());
-        $this->assertSame(NotificationInterface::STATUS_COMPLETED, $this->request->getTransactionStatus());
-        $this->assertSame('Payment completed successfully', $this->request->getMessage());
     }
 
     public function testSendReturnsSelf(): void
     {
         $this->request->initialize([
             'paymentId' => 'pay_123',
-            'mdStatus' => 1,
-            'status' => 'success',
+            'status' => 'SUCCESS',
         ]);
 
         $result = $this->request->send();
 
         $this->assertSame($this->request, $result);
-        $this->assertSame('pay_123', $result->getTransactionReference());
     }
 }
