@@ -184,6 +184,16 @@ class Gateway extends AbstractGateway
         return $this->createRequest(Message\FetchTransactionRequest::class, $parameters);
     }
 
+    public function fetchBinNumber(array $parameters = []): Message\BinNumberRequest
+    {
+        return $this->createRequest(Message\BinNumberRequest::class, $parameters);
+    }
+
+    public function fetchInstallment(array $parameters = []): Message\InstallmentRequest
+    {
+        return $this->createRequest(Message\InstallmentRequest::class, $parameters);
+    }
+
     public function checkout(array $parameters = []): Message\CheckoutRequest
     {
         return $this->createRequest(Message\CheckoutRequest::class, $parameters);
@@ -197,5 +207,35 @@ class Gateway extends AbstractGateway
     public function completePurchase(array $parameters = []): Message\CompletePurchaseRequest
     {
         return $this->createRequest(Message\CompletePurchaseRequest::class, $parameters);
+    }
+
+    public function acceptNotification(array $parameters = []): Message\AcceptNotificationRequest
+    {
+        return $this->createRequest(Message\AcceptNotificationRequest::class, $parameters);
+    }
+
+    public function payWithIyzico(array $parameters = []): Message\PayWithIyzicoInitializeRequest
+    {
+        return $this->createRequest(Message\PayWithIyzicoInitializeRequest::class, $parameters);
+    }
+
+    public function payWithIyzicoStatus(array $parameters = []): Message\PayWithIyzicoRetrieveRequest
+    {
+        return $this->createRequest(Message\PayWithIyzicoRetrieveRequest::class, $parameters);
+    }
+
+    public function createCard(array $parameters = []): Message\CreateCardRequest
+    {
+        return $this->createRequest(Message\CreateCardRequest::class, $parameters);
+    }
+
+    public function deleteCard(array $parameters = []): Message\DeleteCardRequest
+    {
+        return $this->createRequest(Message\DeleteCardRequest::class, $parameters);
+    }
+
+    public function listCards(array $parameters = []): Message\ListCardsRequest
+    {
+        return $this->createRequest(Message\ListCardsRequest::class, $parameters);
     }
 }

@@ -22,6 +22,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface
         'cardToken', 'cardUserKey', 'binNumber', 'lastFourDigits', 'authCode', 'connectorName',
         'paymentTransactionId', 'token', 'tokenExpireTime', 'paymentPageUrl',
         'checkoutFormContent', 'htmlContent', 'mdStatus', 'callbackUrl', 'signature',
+        'bankName', 'bankCode', 'commercial', 'installmentDetails',
+        'externalId', 'cardAlias', 'cardBankCode', 'cardBankName', 'cardDetails',
+        'payWithIyzicoPageUrl', 'payWithIyzicoContent',
     ];
 
     public function __construct(RequestInterface $request, mixed $data)

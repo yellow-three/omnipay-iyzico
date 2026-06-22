@@ -122,6 +122,46 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('paymentId', $value);
     }
 
+    public function getBinNumber(): string
+    {
+        return $this->getParameter('binNumber');
+    }
+
+    public function setBinNumber(string $value): static
+    {
+        return $this->setParameter('binNumber', $value);
+    }
+
+    public function getCardUserKey(): string
+    {
+        return $this->getParameter('cardUserKey');
+    }
+
+    public function setCardUserKey(string $value): static
+    {
+        return $this->setParameter('cardUserKey', $value);
+    }
+
+    public function getCardToken(): string
+    {
+        return $this->getParameter('cardToken');
+    }
+
+    public function setCardToken(string $value): static
+    {
+        return $this->setParameter('cardToken', $value);
+    }
+
+    public function getEmail(): string
+    {
+        return $this->getParameter('email');
+    }
+
+    public function setEmail(string $value): static
+    {
+        return $this->setParameter('email', $value);
+    }
+
     protected function generateConversationId(): string
     {
         return uniqid('txn_', true);
