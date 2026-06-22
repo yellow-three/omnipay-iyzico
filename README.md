@@ -4,6 +4,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/yellow-three/omnipay-iyzico/v/stable)](https://packagist.org/packages/yellow-three/omnipay-iyzico)
 [![Total Downloads](https://poser.pugx.org/yellow-three/omnipay-iyzico/downloads)](https://packagist.org/packages/yellow-three/omnipay-iyzico)
+[![CI](https://github.com/yellow-three/omnipay-iyzico/actions/workflows/ci.yml/badge.svg)](https://github.com/yellow-three/omnipay-iyzico/actions/workflows/ci.yml)
 [![License](https://poser.pugx.org/yellow-three/omnipay-iyzico/license)](https://packagist.org/packages/yellow-three/omnipay-iyzico)
 
 [Omnipay](https://github.com/thephpleague/omnipay) is a framework agnostic, multi-gateway payment processing library for PHP. This package implements Iyzico support for Omnipay v3.
@@ -152,6 +153,97 @@ $response = $gateway->checkoutStatus([
 ])->send();
 ```
 
+### Bin Number Lookup
+
+Query credit card information by BIN (first 6 digits):
+
+```php
+$response = $gateway->fetchBinNumber([
+    'binNumber' => '454359',
+])->send();
+
+$cardType = $response->getCardType();        // CREDIT_CARD, DEBIT_CARD etc
+$cardAssociation = $response->getCardAssociation(); // VISA, MASTER_CARD etc
+$cardFamily = $response->getCardFamily();
+$bankName = $response->getBankName();
+$bankCode = $response->getBankCode();
+```
+
+### Installment Information
+
+Query installment options for a given BIN:
+
+```php
+$response = $gateway->fetchInstallment([
+    'binNumber' => '454359',
+])->send();
+
+// $response contains installment details including installment prices
+```
+
+### Card Storage
+
+Save, list, and delete user cards for future purchases:
+
+```php
+// Save a card
+$response = $gateway->createCard([
+    'card' => $cardData,
+    'email' => 'user@example.com',
+    'cardUserKey' => 'user_key_123',
+])->send();
+
+// List saved cards
+$response = $gateway->listCards([
+    'cardUserKey' => 'user_key_123',
+])->send();
+
+// Delete a saved card
+$response = $gateway->deleteCard([
+    'cardToken' => 'card_token_123',
+    'cardUserKey' => 'user_key_123',
+])->send();
+```
+
+### Pay with iyzico (PWI)
+
+```php
+// Initialize PWI payment
+$response = $gateway->payWithIyzico([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'basketId' => 'order_123',
+    'card' => $cardData,
+    'buyer' => $buyerData,
+    'shippingAddress' => $shippingData,
+    'billingAddress' => $billingData,
+    'basketItems' => $basketItems,
+])->send();
+
+if ($response->isRedirect()) {
+    // Redirect user to iyzico PWI page
+    $response->redirect();
+}
+
+// Retrieve PWI payment status
+$response = $gateway->payWithIyzicoStatus([
+    'token' => 'pwi_token_from_callback',
+])->send();
+```
+
+### Webhook / Accept Notification
+
+Handle iyzico payment callbacks and webhook notifications:
+
+```php
+// In your callback route (iyzico sends POST)
+$response = $gateway->acceptNotification($_POST)->send();
+
+$transactionRef = $response->getTransactionReference();
+$status = $response->getTransactionStatus();
+// Returns TransactionStatus::STATUS_COMPLETED, STATUS_PENDING, or STATUS_FAILED
+```
+
 ## Gateway Parameters
 
 | Parameter | Type | Default | Description |
@@ -167,6 +259,9 @@ $response = $gateway->checkoutStatus([
 | `identityNumber` | string | `''` | Buyer TCKN |
 | `paymentChannel` | string | `WEB` | WEB, MOBILE, MOBILE_WEB |
 | `paymentGroup` | string | `PRODUCT` | PRODUCT, LISTING, SUBSCRIPTION |
+| `cardUserKey` | string | `''` | Card storage user key |
+| `cardToken` | string | `''` | Saved card token |
+| `binNumber` | string | `''` | BIN (first 6 digits) for lookup |
 
 ## Sandbox Testing
 
