@@ -50,6 +50,7 @@ class CheckoutRequestTest extends TestCase
         $this->assertSame('order_123', $data['basketId']);
         $this->assertSame('PRODUCT', $data['paymentGroup']);
         $this->assertSame('https://example.com/callback', $data['callbackUrl']);
+        $this->assertNull($data['card']);
         $this->assertSame([2, 3, 6, 9], $data['enabledInstallments']);
     }
 
@@ -306,5 +307,66 @@ class CheckoutRequestTest extends TestCase
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
+    }
+
+    public function testSendDataWithCardSetsBuyerShippingAndBilling(): void
+    {
+        $paymentPageUrl = 'https://sandbox-api.iyzipay.com/payment/iyzipos/checkoutform/123456/hand/ecom';
+
+        $this->request->setAmount('150.00');
+        $this->request->setCurrency('TRY');
+        $this->request->setLocale('TR');
+        $this->request->setConversationId('conv_card');
+        $this->request->setBasketId('basket_card');
+        $this->request->setPaymentGroup('PRODUCT');
+        $this->request->setReturnUrl('https://example.com/callback');
+        $this->request->setApiKey('fake-api-key');
+        $this->request->setSecretKey('fake-secret-key');
+        $this->request->setBaseUrl('https://sandbox-api.iyzipay.com');
+
+        $this->request->setCard([
+            'number' => '4111111111111111',
+            'expiryMonth' => '12',
+            'expiryYear' => '2030',
+            'cvv' => '123',
+            'firstName' => 'John',
+            'lastName' => 'Doe',
+            'email' => 'john@example.com',
+            'phone' => '+905551112233',
+        ]);
+
+        $this->request->setIdentityNumber('11111111111');
+
+        $this->request->setItems([
+            ['name' => 'Item 1', 'price' => '100.00', 'quantity' => 1],
+            ['name' => 'Item 2', 'price' => '50.00', 'quantity' => 1],
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertNotNull($data['card']);
+        $this->assertSame('John Doe', $data['card']->getName());
+
+        $httpClient = $this->createMock(HttpClient::class);
+        $httpClient->expects($this->once())
+            ->method('post')
+            ->willReturn(json_encode([
+                'status' => 'success',
+                'locale' => 'TR',
+                'systemTime' => '1458545234852',
+                'conversationId' => 'conv_card',
+                'paymentPageUrl' => $paymentPageUrl,
+                'token' => 'token_card',
+                'tokenExpireTime' => '2030-12-31 23:59:59',
+            ]));
+
+        ApiResource::setHttpClient($httpClient);
+
+        $response = $this->request->sendData($data);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertTrue($response->isSuccessful());
+        $this->assertSame($paymentPageUrl, $response->getRedirectUrl());
+        $this->assertSame('token_card', $response->getToken());
     }
 }

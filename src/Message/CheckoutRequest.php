@@ -10,6 +10,8 @@ class CheckoutRequest extends AbstractRequest
     {
         $this->validate('amount');
 
+        $card = $this->getCard();
+
         return [
             'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
@@ -19,6 +21,7 @@ class CheckoutRequest extends AbstractRequest
             'basketId' => $this->getParameter('basketId') ?: uniqid('basket_', true),
             'paymentGroup' => $this->getPaymentGroup(),
             'callbackUrl' => $this->getReturnUrl(),
+            'card' => $card,
             'enabledInstallments' => $this->getParameter('enabledInstallments') ?? [2, 3, 6, 9],
         ];
     }
@@ -26,6 +29,7 @@ class CheckoutRequest extends AbstractRequest
     public function sendData($data): Response|RedirectResponse
     {
         $options = $this->createIyzicoOptions();
+        $card = $data['card'];
 
         $request = new \Iyzipay\Request\CreateCheckoutFormInitializeRequest();
         $request->setLocale($this->mapLocale($data['locale']));
@@ -36,6 +40,14 @@ class CheckoutRequest extends AbstractRequest
         $request->setBasketId($data['basketId']);
         $request->setPaymentGroup($this->mapPaymentGroup($data['paymentGroup']));
         $request->setCallbackUrl($data['callbackUrl']);
+
+        if ($card) {
+            $request->setBuyer($this->buildBuyer($card));
+            $request->setShippingAddress($this->buildShippingAddress($card));
+            $request->setBillingAddress($this->buildBillingAddress($card));
+        }
+
+        $request->setBasketItems($this->buildBasketItems());
         $request->setEnabledInstallments($data['enabledInstallments']);
 
         $result = CheckoutFormInitialize::create($request, $options);
