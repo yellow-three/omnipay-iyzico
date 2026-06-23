@@ -19,7 +19,7 @@ class IyziLinkDeleteProductRequest extends AbstractRequest
     {
         $options = $this->createIyzicoOptions();
 
-        $result = IyziLinkDeleteProduct::create(null, $options, $data['token']);
+        $result = IyziLinkDeleteProduct::create(new \Iyzipay\Request(), $options, $data['token']);
 
         return new Response($this, $result);
     }
@@ -29,7 +29,7 @@ class IyziLinkDeleteProductRequest extends AbstractRequest
         return $this->getParameter('token');
     }
 
-    public function setToken(string $value): static
+    public function setToken($value): static
     {
         return $this->setParameter('token', $value);
     }

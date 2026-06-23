@@ -41,7 +41,7 @@ class IyziLinkCreateFastLinkRequest extends AbstractRequest
         return $this->getParameter('description');
     }
 
-    public function setDescription(string $value): static
+    public function setDescription($value): static
     {
         return $this->setParameter('description', $value);
     }

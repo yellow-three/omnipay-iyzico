@@ -22,7 +22,7 @@ class IyziLinkRetrieveProductRequest extends AbstractRequest
     {
         $options = $this->createIyzicoOptions();
 
-        $result = IyziLinkRetrieveProduct::create(null, $options, $data['token']);
+        $result = IyziLinkRetrieveProduct::create(new \Iyzipay\Request(), $options, $data['token']);
 
         return new Response($this, $result);
     }
@@ -32,7 +32,7 @@ class IyziLinkRetrieveProductRequest extends AbstractRequest
         return $this->getParameter('token');
     }
 
-    public function setToken(string $value): static
+    public function setToken($value): static
     {
         return $this->setParameter('token', $value);
     }

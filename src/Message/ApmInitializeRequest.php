@@ -9,8 +9,7 @@ class ApmInitializeRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('card', 'amount');
-        $this->getCard()->validate();
+        $this->validate('amount');
 
         return [
             'locale' => $this->getLocale(),
@@ -18,11 +17,9 @@ class ApmInitializeRequest extends AbstractRequest
             'price' => $this->getAmount(),
             'paidPrice' => $this->getAmount(),
             'currency' => $this->getCurrency(),
-            'installment' => $this->getInstallment(),
             'paymentChannel' => $this->getPaymentChannel(),
             'paymentGroup' => $this->getPaymentGroup(),
             'basketId' => $this->getParameter('basketId') ?: uniqid('basket_', true),
-            'card' => $this->getCard(),
             'apmType' => $this->getApmType(),
             'merchantOrderId' => $this->getMerchantOrderId(),
             'countryCode' => $this->getCountryCode(),
@@ -33,7 +30,6 @@ class ApmInitializeRequest extends AbstractRequest
     public function sendData($data): Response|RedirectResponse
     {
         $options = $this->createIyzicoOptions();
-        $card = $data['card'];
 
         $request = new \Iyzipay\Request\CreateApmInitializeRequest();
         $request->setLocale($this->mapLocale($data['locale']));
@@ -41,7 +37,6 @@ class ApmInitializeRequest extends AbstractRequest
         $request->setPrice($data['price']);
         $request->setPaidPrice($data['paidPrice']);
         $request->setCurrency($this->mapCurrency($data['currency']));
-        $request->setInstallment($data['installment']);
         $request->setPaymentChannel($this->mapPaymentChannel($data['paymentChannel']));
         $request->setPaymentGroup($this->mapPaymentGroup($data['paymentGroup']));
         $request->setBasketId($data['basketId']);
@@ -49,12 +44,6 @@ class ApmInitializeRequest extends AbstractRequest
         $request->setMerchantOrderId($data['merchantOrderId']);
         $request->setCountryCode($data['countryCode']);
         $request->setMerchantCallbackUrl($data['merchantCallbackUrl']);
-
-        $request->setPaymentCard($this->buildPaymentCard($card));
-        $request->setBuyer($this->buildBuyer($card));
-        $request->setShippingAddress($this->buildShippingAddress($card));
-        $request->setBillingAddress($this->buildBillingAddress($card));
-        $request->setBasketItems($this->buildBasketItems());
 
         $result = Apm::create($request, $options);
 
