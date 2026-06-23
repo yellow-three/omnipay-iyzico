@@ -153,6 +153,23 @@ $response = $gateway->checkoutStatus([
 ])->send();
 ```
 
+### Complete Purchase (3DS Callback)
+
+After a 3D Secure payment is initiated, iyzico redirects the user back to your `returnUrl` with the result. Call `completePurchase()` with the callback data to complete the transaction:
+
+```php
+// In your callback route (iyzico sends POST data)
+$response = $gateway->completePurchase($_POST)->send();
+
+if ($response->isSuccessful()) {
+    echo 'Payment successful! ID: ' . $response->getTransactionReference();
+} else {
+    echo 'Payment failed: ' . $response->getMessage();
+}
+```
+
+> **Note:** iyzico sends the 3DS callback via **POST**, not GET. Your route handler must accept POST requests.
+
 ### Bin Number Lookup
 
 Query credit card information by BIN (first 6 digits):
@@ -233,16 +250,197 @@ $response = $gateway->payWithIyzicoStatus([
 
 ### Webhook / Accept Notification
 
-Handle iyzico payment callbacks and webhook notifications:
+Handle iyzico payment callbacks and webhook notifications with HMAC-SHA256 signature verification:
 
 ```php
-// In your callback route (iyzico sends POST)
+// In your webhook route (iyzico sends POST with JSON payload)
 $response = $gateway->acceptNotification($_POST)->send();
 
 $transactionRef = $response->getTransactionReference();
 $status = $response->getTransactionStatus();
-// Returns TransactionStatus::STATUS_COMPLETED, STATUS_PENDING, or STATUS_FAILED
+$message = $response->getMessage();
+
+// Verify the webhook signature (recommended for production)
+if ($response->isValid()) {
+    // Signature verified — process the notification
+    switch ($status) {
+        case NotificationInterface::STATUS_COMPLETED:
+            // Payment successful
+            break;
+        case NotificationInterface::STATUS_PENDING:
+            // Payment pending (INIT_THREEDS, BKM_POS_SELECTED, etc.)
+            break;
+        case NotificationInterface::STATUS_FAILED:
+            // Payment failed
+            break;
+    }
+} else {
+    // Invalid signature or empty data — discard
+    http_response_code(400);
+    exit;
+}
 ```
+
+#### Webhook Formats
+
+iyzico sends webhooks in two formats:
+
+| Format | Identification | Key Fields |
+|--------|--------------|------------|
+| **Direct** | No `token` parameter | `paymentId`, `iyziPaymentId`, `iyziEventType`, `status` |
+| **HPP** (Hosted Payment Page) | Has `token` parameter | `token`, `iyziPaymentId`, `iyziEventType`, `status` |
+
+The gateway auto-detects the format based on the presence of `token` in the payload.
+
+#### Signature Verification
+
+The HMAC-SHA256 signature is computed differently for each format:
+
+- **Direct:** `hash_hmac('sha256', $secretKey . $iyziEventType . $paymentId . $paymentConversationId . $status, $secretKey)`
+- **HPP:** `hash_hmac('sha256', $secretKey . $iyziEventType . $iyziPaymentId . $token . $paymentConversationId . $status, $secretKey)`
+
+Call `$response->isValid()` to verify the signature automatically.
+
+#### Transaction Reference Fallback
+
+`getTransactionReference()` returns the first available value from:
+1. `$data['paymentId']` (Direct format)
+2. `$data['iyziPaymentId']` (HPP format)
+3. `$data['token']` (HPP format)
+4. `$this->getParameter('paymentId')` (set via Gateway)
+5. `$this->getParameter('token')` (set via Gateway)
+
+#### Status Mapping
+
+| Webhook Status | NotificationInterface Constant |
+|---------------|------------------------------|
+| `SUCCESS` | `STATUS_COMPLETED` |
+| `FAILURE` | `STATUS_FAILED` |
+| `INIT_THREEDS`, `CALLBACK_THREEDS`, `BKM_POS_SELECTED`, `INIT_APM`, `INIT_CONTACTLESS`, `INIT_BANK_TRANSFER`, `INIT_CREDIT`, `PENDING_CREDIT` | `STATUS_PENDING` |
+
+## End-to-End 3DS Flow
+
+A complete 3D Secure payment flow from start to finish:
+
+### Step 1: Initialize the Gateway
+
+```php
+$gateway = Omnipay::create('Iyzico');
+$gateway->setApiKey('your-api-key');
+$gateway->setSecretKey('your-secret-key');
+$gateway->setTestMode(true); // Sandbox mode
+```
+
+### Step 2: Initiate Purchase with 3DS
+
+```php
+$response = $gateway->purchase([
+    'amount' => '150.00',
+    'currency' => 'TRY',
+    'installment' => 1,
+    'secure3d' => true,
+    'returnUrl' => 'https://yoursite.com/payment/callback',
+    'card' => [
+        'number' => '4543590000000006',
+        'expiryMonth' => '12',
+        'expiryYear' => '2030',
+        'cvv' => '123',
+        'firstName' => 'John',
+        'lastName' => 'Doe',
+        'email' => 'john@example.com',
+        'phone' => '+905551112233',
+    ],
+    'description' => 'Order #123',
+])->send();
+
+if ($response->isRedirect()) {
+    // Render the 3DS form in browser
+    echo $response->getHtmlContent();
+    exit;
+}
+```
+
+### Step 3: Handle 3DS Callback
+
+iyzico redirects the user back to your `returnUrl` with POST data:
+
+```php
+// Route: POST /payment/callback
+$response = $gateway->completePurchase($_POST)->send();
+
+if ($response->isSuccessful()) {
+    $paymentId = $response->getTransactionReference();
+    echo 'Payment successful! ID: ' . $paymentId;
+} else {
+    echo 'Payment failed: ' . $response->getMessage();
+}
+```
+
+### Step 4: Verify with Webhook (Optional)
+
+iyzico also sends a webhook after the payment is finalized:
+
+```php
+// Route: POST /payment/webhook
+$response = $gateway->acceptNotification(
+    json_decode(file_get_contents('php://input'), true) ?? []
+)->send();
+
+if ($response->isValid()) {
+    // Process based on status
+    $transactionRef = $response->getTransactionReference();
+    $status = $response->getTransactionStatus();
+    // Update your order status
+}
+```
+
+> **Important:** The webhook `$_POST` data must be decoded from JSON (iyzico sends JSON payloads to webhooks). For 3DS callbacks, iyzico sends form-encoded POST data — use `$_POST` directly.
+
+## Response Methods
+
+The `Response` object returned by `->send()` provides these methods:
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `isSuccessful()` | `bool` | Payment successful (status = "success") |
+| `isPending()` | `bool` | Payment pending (status = "pending") |
+| `isRedirect()` | `bool` | Whether response requires redirect |
+| `getTransactionReference()` | `?string` | Payment ID or conversation ID |
+| `getTransactionId()` | `?string` | Payment transaction ID |
+| `getPaymentId()` | `?string` | iyzico payment ID |
+| `getPaymentStatus()` | `?string` | Payment status from iyzico |
+| `getStatus()` | `?string` | Raw status field |
+| `getConversationId()` | `?string` | Conversation ID |
+| `getToken()` | `?string` | Checkout/PWI token |
+| `getMessage()` | `?string` | Error message or status |
+| `getCode()` | `?string` | Error code |
+| `getPaidPrice()` | `?string` | Paid price amount |
+| `getCheckoutFormContent()` | `?string` | Checkout form iframe content |
+| `getCardType()` | `?string` | CREDIT_CARD, DEBIT_CARD |
+| `getCardAssociation()` | `?string` | VISA, MASTER_CARD |
+| `getCardFamily()` | `?string` | Card family/brand name |
+| `getCardToken()` | `?string` | Saved card token |
+| `getCardUserKey()` | `?string` | Card user key |
+| `getBinNumber()` | `?string` | BIN (first 6 digits) |
+| `getLastFourDigits()` | `?string` | Last 4 digits of card |
+| `getAuthCode()` | `?string` | Authorization code |
+| `getConnectorName()` | `?string` | Connector/bank name |
+| `getPaymentTransactionId()` | `?string` | Payment transaction ID |
+| `getBankName()` | `?string` | Issuing bank name |
+| `getBankCode()` | `?string` | Issuing bank code |
+| `getCommercial()` | `?int` | Commercial card flag (0/1) |
+| `getInstallmentDetails()` | `?array` | Installment option details |
+| `getExternalId()` | `?string` | External reference ID |
+| `getCardAlias()` | `?string` | Saved card alias |
+| `getCardBankCode()` | `?string` | Card bank code |
+| `getCardBankName()` | `?string` | Card bank name |
+| `getSignature()` | `?string` | Webhook HMAC signature |
+| `getMdStatus()` | `?string` | 3DS status code |
+| `getCallbackUrl()` | `?string` | Callback URL |
+| `getHtmlContent()` | `?string` | 3DS/Checkout HTML content |
+| `getPaymentPageUrl()` | `?string` | Payment page URL |
+| `getPayWithIyzicoPageUrl()` | `?string` | PWI page URL |
+| `getPayWithIyzicoContent()` | `?string` | PWI iframe content |
 
 ## Gateway Parameters
 
@@ -330,6 +528,15 @@ iyzico requires the following buyer fields. Missing any causes validation errors
 - `PaymentChannel::WEB_POS` does not exist — use `WEB`
 - `PaymentGroup::INHERITED` does not exist — use `PRODUCT`, `LISTING`, or `SUBSCRIPTION`
 - 3DS Initialize returns HTML content (`getHtmlContent()`), not a redirect URL — render it directly in the browser
+
+### Webhook / AcceptNotification
+
+- iyzico webhook payload'ları JSON formatında gelir — `$_POST` yerine `json_decode(file_get_contents('php://input'), true)` kullanarak çözün
+- Webhook payload'ında `mdStatus`, `errorMessage`, `errorCode` alanları yoktur — bunlar sadece senkron 3DS callback'lerinde bulunur
+- HMAC-SHA256 imzası `signature` alanında gelir; `isValid()` ile doğrulayın
+- İmza doğrulaması için Gateway'e `setSecretKey()` ile secret key tanımlanmış olmalıdır
+- `getTransactionReference()` fallback zinciri: paymentId → iyziPaymentId → token → ParameterBag
+- SUCCESS/FAILURE dışındaki status'ler (INIT_THREEDS, CALLBACK_THREEDS, BKM_POS_SELECTED) `STATUS_PENDING` olarak map'lenir — bu, yanlışlıkla refund/void gönderilmesini engeller
 
 ## Requirements
 
