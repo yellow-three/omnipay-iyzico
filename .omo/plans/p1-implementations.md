@@ -69,7 +69,7 @@ Your next move: approve this plan. Full execution detail follows below.
 ## Todos
 > Implementation + Test = ONE todo. Never separate.
 <!-- APPEND TASK BATCHES BELOW THIS LINE WITH edit/apply_patch - never rewrite the headers above. -->
-- [ ] 1. Add PreAuth Initialize: CheckoutFormPreAuth, PayWithIyzicoPreAuth, BasicThreedsPreAuth
+- [x] 1. Add PreAuth Initialize: CheckoutFormPreAuth, PayWithIyzicoPreAuth, BasicThreedsPreAuth
   What to do / Must NOT do:
   - Create `src/Message/CheckoutFormPreAuthRequest.php` extending `AbstractRequest` (copy CheckoutRequest pattern, call `CheckoutFormInitializePreAuth::create()` endpoint `/payment/iyzipos/checkoutform/initialize/preauth/ecom`)
   - Create `src/Message/PayWithIyzicoPreAuthRequest.php` extending `AbstractRequest` (copy PayWithIyzicoInitializeRequest pattern, call `\Iyzipay\Model\PayWithIyzicoInitialize::create()` with `paymentGroup=LISTING` and preauth endpoint)
@@ -83,7 +83,7 @@ Your next move: approve this plan. Full execution detail follows below.
   QA scenarios: happy — CheckoutFormPreAuthRequest getData() returns expected structure; failure — missing amount throws InvalidRequestException. Evidence .omo/evidence/task-1-p1-implementations.txt
   Commit: Y | feat: add PreAuth Initialize support (P1 item 4)
 
-- [ ] 2. Add RefundToBalance and SettlementToBalance
+- [x] 2. Add RefundToBalance and SettlementToBalance
   What to do / Must NOT do:
   - Create `src/Message/RefundToBalanceRequest.php` extending `AbstractRequest` — calls `RefundToBalance::create(CreateRefundToBalanceRequest)`, POST `/payment/refund-to-balance/init`
   - Create `src/Message/SettlementToBalanceRequest.php` extending `AbstractRequest` — calls `SettlementToBalance::create(CreateSettlementToBalanceRequest)`, POST `/payment/settlement-to-balance/init`
@@ -97,7 +97,7 @@ Your next move: approve this plan. Full execution detail follows below.
   QA scenarios: happy — getData() returns expected structure; failure — missing required param throws. Evidence .omo/evidence/task-2-p1-implementations.txt
   Commit: Y | feat: add RefundToBalance and SettlementToBalance support (P1 item 11)
 
-- [ ] 3. Add PlusInstallmentPayment and Loyalty retrieval
+- [x] 3. Add PlusInstallmentPayment and Loyalty retrieval
   What to do / Must NOT do:
   - Create `src/Message/PlusInstallmentPaymentRequest.php` — calls `PlusInstallmentPayment::create(CreatePlusInstallmentPaymentRequest)`, POST `/payment/auth` (same endpoint as regular payment but with different SDK model)
   - Create `src/Message/LoyaltyRequest.php` — calls `Loyalty::retrieve(RetrieveLoyaltyRequest)`, POST `/payment/loyalty/inquire`

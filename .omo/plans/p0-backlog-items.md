@@ -60,7 +60,7 @@ Wave 1 (parallel — 3 independent items):
 ## Todos
 > Implementation + Test = ONE todo. Never separate.
 <!-- APPEND TASK BATCHES BELOW THIS LINE WITH edit/apply_patch - never rewrite the headers above. -->
-- [ ] 1. Response signature validation (sync API HMAC-SHA256)
+- [x] 1. Response signature validation (sync API HMAC-SHA256)
   What to do / Must NOT do:
     - Add `public static function normalizeTrailingZero(string $value): string` to Response.php — removes trailing zeros from price-like strings. "50.00" → "50", "10.50" → "10.5", "10.510" → "10.51"
     - Add `public function verifySignature(string $secretKey, array $fieldNames): bool` to Response.php — computes HMAC-SHA256 of the concatenated field values (extracted from $this->data via $fieldNames, normalized with normalizeTrailingZero on price fields), compares with $this->data['signature'] via hash_equals().
@@ -95,7 +95,7 @@ Wave 1 (parallel — 3 independent items):
     Evidence: .omo/evidence/task-1-p0-backlog-items.md
   Commit: Y | feat(security): add HMAC-SHA256 signature validation for sync API responses
 
-- [ ] 2. mapCurrency() throws InvalidRequestException on unknown currency
+- [x] 2. mapCurrency() throws InvalidRequestException on unknown currency
   What to do / Must NOT do:
     - AbstractRequest.php line 199: change `default => IyzicoCurrency::TL` to throw `new InvalidRequestException('Unsupported currency: [...] Supported: TRY, USD, EUR, GBP, RUB, IRR, NOK, CHF')`
     - Must NOT: change any other part of mapCurrency (the supported list is already correct per backlog)
@@ -117,7 +117,7 @@ Wave 1 (parallel — 3 independent items):
     Evidence: .omo/evidence/task-2-p0-backlog-items.md
   Commit: Y | fix: mapCurrency() throws InvalidRequestException instead of silent TRY fallback
 
-- [ ] 3. RefundRequest uses RefundReason::BUYER_REQUEST constant
+- [x] 3. RefundRequest uses RefundReason::BUYER_REQUEST constant
   What to do / Must NOT do:
     - RefundRequest.php: add `use Iyzipay\Model\RefundReason;` import
     - RefundRequest.php line 19: change `'reason' => $this->getParameter('reason') ?? 'buyer request'` to `'reason' => $this->getParameter('reason') ?? RefundReason::BUYER_REQUEST`
@@ -142,10 +142,10 @@ Wave 1 (parallel — 3 independent items):
 
 ## Final verification wave
 > Runs in parallel after ALL todos. ALL must APPROVE. Surface results and wait for the user's explicit okay before declaring complete.
-- [ ] F1. Plan compliance audit — all 3 P0 items implemented, scope boundaries respected
-- [ ] F2. Code quality review — no logic errors, trailing zero correct, hash_equals() used, no silent failures
-- [ ] F3. Real manual QA — full PHPUnit suite passes: `vendor/bin/phpunit --no-coverage`
-- [ ] F4. Scope fidelity — no changes to AcceptNotificationRequest, Gateway.php, or P1+ files
+- [x] F1. Plan compliance audit — all 3 P0 items implemented, scope boundaries respected
+- [x] F2. Code quality review — no logic errors, trailing zero correct, hash_equals() used, no silent failures
+- [x] F3. Real manual QA — full PHPUnit suite passes: `vendor/bin/phpunit --no-coverage`
+- [x] F4. Scope fidelity — no changes to AcceptNotificationRequest, Gateway.php, or P1+ files
 
 ## Commit strategy
 - Todo 1: `feat(security): add HMAC-SHA256 signature validation for sync API responses`
