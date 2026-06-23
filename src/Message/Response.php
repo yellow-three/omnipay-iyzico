@@ -148,4 +148,111 @@ class Response extends AbstractResponse implements RedirectResponseInterface
     {
         return [];
     }
+
+    /**
+     * Remove trailing zeros from price strings for signature computation.
+     * "50.00" → "50", "10.50" → "10.5", "10.510" → "10.51"
+     */
+    public static function normalizeTrailingZero(string $value): string
+    {
+        if (str_contains($value, '.')) {
+            $value = rtrim(rtrim($value, '0'), '.');
+        }
+        return $value;
+    }
+
+    /**
+     * Verify HMAC-SHA256 signature against ordered field values.
+     *
+     * @param string $secretKey The merchant secret key
+     * @param array $fieldNames Ordered array of field names to include in signature
+     * @param array $options Optional: ['priceFields' => ['price', 'paidPrice']] for normalization
+     * @return bool True if signature matches
+     */
+    public function verifySignature(string $secretKey, array $fieldNames, array $options = []): bool
+    {
+        $signature = $this->data['signature'] ?? '';
+        if (empty($signature)) {
+            return false;
+        }
+
+        $priceFields = $options['priceFields'] ?? ['price', 'paidPrice'];
+        $parts = [];
+        $parts[] = $secretKey;
+
+        foreach ($fieldNames as $field) {
+            $value = $this->data[$field] ?? '';
+            if (in_array($field, $priceFields, true)) {
+                $value = self::normalizeTrailingZero($value);
+            }
+            $parts[] = $value;
+        }
+
+        $message = implode(':', $parts);
+        $computed = hash_hmac('sha256', $message, $secretKey);
+
+        return hash_equals($computed, $signature);
+    }
+
+    /**
+     * Store the signature verification result.
+     */
+    public function setSignatureValid(?bool $valid): void
+    {
+        $this->data['_signature_valid'] = $valid;
+    }
+
+    /**
+     * Returns whether the response signature was verified.
+     *
+     * @return bool|null null if no verification was performed
+     */
+    public function isSignatureValid(): ?bool
+    {
+        return $this->data['_signature_valid'] ?? null;
+    }
+
+    /**
+     * Get the ordered field names for signature verification by endpoint key.
+     *
+     * @return array|null Ordered field names, or null if the endpoint is unknown
+     */
+    public static function getSignatureFieldOrder(string $endpoint): ?array
+    {
+        $map = [
+            'non-3ds' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'preauth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'postauth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'payment-detail' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            '3ds-init' => ['paymentId', 'conversationId'],
+            '3ds-preauth-init' => ['paymentId', 'conversationId'],
+            '3ds-auth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            '3ds-v2-auth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'checkout-init' => ['conversationId', 'token'],
+            'pwi-init' => ['conversationId', 'token'],
+            'checkout-preauth-init' => ['conversationId', 'token'],
+            'checkout-retrieve' => ['paymentStatus', 'paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'token'],
+            'refund' => ['paymentId', 'price', 'currency', 'conversationId'],
+            'refund-v2' => ['paymentId', 'price', 'currency', 'conversationId'],
+        ];
+
+        return $map[$endpoint] ?? null;
+    }
+
+    /**
+     * Convenience method: look up the field order for the given endpoint,
+     * verify the signature, and store the result.
+     */
+    public function applySignature(string $secretKey, string $endpoint): void
+    {
+        $fieldOrder = self::getSignatureFieldOrder($endpoint);
+
+        if ($fieldOrder === null) {
+            $this->setSignatureValid(null);
+            return;
+        }
+
+        $isValid = $this->verifySignature($secretKey, $fieldOrder);
+        $this->setSignatureValid($isValid);
+    }
 }

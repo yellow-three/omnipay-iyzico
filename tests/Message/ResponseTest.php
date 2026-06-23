@@ -222,4 +222,172 @@ class ResponseTest extends TestCase
         $this->assertFalse($response->isSuccessful());
         $this->assertNull($response->getStatus());
     }
+
+    public function testNormalizeTrailingZeroWithStandardPrice(): void
+    {
+        $this->assertSame('50', Response::normalizeTrailingZero('50.00'));
+    }
+
+    public function testNormalizeTrailingZeroWithSingleDecimal(): void
+    {
+        $this->assertSame('10.5', Response::normalizeTrailingZero('10.50'));
+    }
+
+    public function testNormalizeTrailingZeroWithMultipleDecimals(): void
+    {
+        $this->assertSame('10.51', Response::normalizeTrailingZero('10.510'));
+    }
+
+    public function testNormalizeTrailingZeroWithIntegerString(): void
+    {
+        $this->assertSame('100', Response::normalizeTrailingZero('100'));
+    }
+
+    public function testNormalizeTrailingZeroWithNonNumeric(): void
+    {
+        $this->assertSame('abc', Response::normalizeTrailingZero('abc'));
+    }
+
+    public function testNormalizeTrailingZeroWithZeroValue(): void
+    {
+        $this->assertSame('0', Response::normalizeTrailingZero('0.00'));
+    }
+
+    public function testVerifySignatureReturnsTrueWithValidSignature(): void
+    {
+        $data = [
+            'paymentId' => 'pay_123',
+            'currency' => 'TRY',
+            'conversationId' => 'conv_123',
+            'signature' => '80a72cfe1a88ca9e393a51b0b66aa3b2379b8f3767c1f0e667c777f6928f4295',
+        ];
+        $response = new Response($this->createMock(RequestInterface::class), $data);
+
+        $this->assertTrue(
+            $response->verifySignature('test-key', ['paymentId', 'currency', 'conversationId'])
+        );
+    }
+
+    public function testVerifySignatureReturnsFalseWithTamperedData(): void
+    {
+        $data = [
+            'paymentId' => 'pay_123',
+            'currency' => 'TRY',
+            'conversationId' => 'conv_999', // tampered
+            'signature' => '80a72cfe1a88ca9e393a51b0b66aa3b2379b8f3767c1f0e667c777f6928f4295',
+        ];
+        $response = new Response($this->createMock(RequestInterface::class), $data);
+
+        $this->assertFalse(
+            $response->verifySignature('test-key', ['paymentId', 'currency', 'conversationId'])
+        );
+    }
+
+    public function testVerifySignatureReturnsFalseWhenSignatureMissing(): void
+    {
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            ['paymentId' => 'pay_123']
+        );
+
+        $this->assertFalse(
+            $response->verifySignature('test-key', ['paymentId'])
+        );
+    }
+
+    public function testVerifySignatureWithPriceNormalization(): void
+    {
+        // Compute expected: secretKey="sekret", paidPrice="100.50", price="100.50"
+        // Message: "sekret:pay_1:TRY:basket_1:conv_1:100.5:100.5"
+        $expected = hash_hmac('sha256', 'sekret:pay_1:TRY:basket_1:conv_1:100.5:100.5', 'sekret');
+
+        $data = [
+            'paymentId' => 'pay_1',
+            'currency' => 'TRY',
+            'basketId' => 'basket_1',
+            'conversationId' => 'conv_1',
+            'paidPrice' => '100.50',
+            'price' => '100.50',
+            'signature' => $expected,
+        ];
+        $response = new Response($this->createMock(RequestInterface::class), $data);
+
+        $this->assertTrue(
+            $response->verifySignature('sekret', ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'])
+        );
+    }
+
+    public function testIsSignatureValidReturnsNullWhenNotSet(): void
+    {
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success']
+        );
+
+        $this->assertNull($response->isSignatureValid());
+    }
+
+    public function testIsSignatureValidReturnsTrueWhenSet(): void
+    {
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success']
+        );
+
+        $response->setSignatureValid(true);
+        $this->assertTrue($response->isSignatureValid());
+    }
+
+    public function testIsSignatureValidReturnsFalseWhenSet(): void
+    {
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success']
+        );
+
+        $response->setSignatureValid(false);
+        $this->assertFalse($response->isSignatureValid());
+    }
+
+    public function testApplySignatureValidatesCorrectly(): void
+    {
+        $signature = hash_hmac('sha256', 'test-key:pay_1:conv_1', 'test-key');
+        $data = [
+            'paymentId' => 'pay_1',
+            'conversationId' => 'conv_1',
+            'signature' => $signature,
+        ];
+        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response->applySignature('test-key', '3ds-init');
+
+        $this->assertTrue($response->isSignatureValid());
+    }
+
+    public function testApplySignatureReturnsNullForUnknownEndpoint(): void
+    {
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success']
+        );
+
+        $response->applySignature('test-key', 'unknown-endpoint');
+        $this->assertNull($response->isSignatureValid());
+    }
+
+    public function testGetSignatureFieldOrderReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            Response::getSignatureFieldOrder('non-3ds')
+        );
+        $this->assertSame(
+            ['paymentId', 'conversationId'],
+            Response::getSignatureFieldOrder('3ds-init')
+        );
+        $this->assertSame(
+            ['conversationId', 'token'],
+            Response::getSignatureFieldOrder('checkout-init')
+        );
+        $this->assertNull(Response::getSignatureFieldOrder('nonexistent'));
+    }
 }
