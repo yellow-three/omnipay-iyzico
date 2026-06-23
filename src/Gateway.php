@@ -273,4 +273,79 @@ class Gateway extends AbstractGateway
     {
         return $this->createRequest(Message\SettlementToBalanceRequest::class, $parameters);
     }
+
+    public function bkmInitialize(array $parameters = []): Message\BkmInitializeRequest
+    {
+        return $this->createRequest(Message\BkmInitializeRequest::class, $parameters);
+    }
+
+    public function bkmStatus(array $parameters = []): Message\BkmRetrieveRequest
+    {
+        return $this->createRequest(Message\BkmRetrieveRequest::class, $parameters);
+    }
+
+    public function basicBkmInitialize(array $parameters = []): Message\BasicBkmInitializeRequest
+    {
+        return $this->createRequest(Message\BasicBkmInitializeRequest::class, $parameters);
+    }
+
+    public function iyziLinkSaveProduct(array $parameters = []): Message\IyziLinkSaveProductRequest
+    {
+        return $this->createRequest(Message\IyziLinkSaveProductRequest::class, $parameters);
+    }
+
+    public function iyziLinkRetrieveProduct(array $parameters = []): Message\IyziLinkRetrieveProductRequest
+    {
+        return $this->createRequest(Message\IyziLinkRetrieveProductRequest::class, $parameters);
+    }
+
+    public function iyziLinkRetrieveAllProduct(array $parameters = []): Message\IyziLinkRetrieveAllProductRequest
+    {
+        return $this->createRequest(Message\IyziLinkRetrieveAllProductRequest::class, $parameters);
+    }
+
+    public function iyziLinkDeleteProduct(array $parameters = []): Message\IyziLinkDeleteProductRequest
+    {
+        return $this->createRequest(Message\IyziLinkDeleteProductRequest::class, $parameters);
+    }
+
+    public function iyziLinkUpdateProductStatus(array $parameters = []): Message\IyziLinkUpdateProductStatusRequest
+    {
+        return $this->createRequest(Message\IyziLinkUpdateProductStatusRequest::class, $parameters);
+    }
+
+    public function iyziLinkCreateFastLink(array $parameters = []): Message\IyziLinkCreateFastLinkRequest
+    {
+        return $this->createRequest(Message\IyziLinkCreateFastLinkRequest::class, $parameters);
+    }
+
+    public function iyziLinkSearchMerchantProducts(array $parameters = []): Message\IyziLinkSearchMerchantProductsRequest
+    {
+        return $this->createRequest(Message\IyziLinkSearchMerchantProductsRequest::class, $parameters);
+    }
+
+    public function reportingPaymentDetail(array $parameters = []): Message\ReportingPaymentDetailRequest
+    {
+        return $this->createRequest(Message\ReportingPaymentDetailRequest::class, $parameters);
+    }
+
+    public function reportingPaymentTransaction(array $parameters = []): Message\ReportingPaymentTransactionRequest
+    {
+        return $this->createRequest(Message\ReportingPaymentTransactionRequest::class, $parameters);
+    }
+
+    public function reportingScrollTransaction(array $parameters = []): Message\ReportingScrollTransactionRequest
+    {
+        return $this->createRequest(Message\ReportingScrollTransactionRequest::class, $parameters);
+    }
+
+    public function apmInitialize(array $parameters = []): Message\ApmInitializeRequest
+    {
+        return $this->createRequest(Message\ApmInitializeRequest::class, $parameters);
+    }
+
+    public function apmRetrieve(array $parameters = []): Message\ApmRetrieveRequest
+    {
+        return $this->createRequest(Message\ApmRetrieveRequest::class, $parameters);
+    }
 }

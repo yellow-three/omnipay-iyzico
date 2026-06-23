@@ -234,6 +234,19 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             'checkout-retrieve' => ['paymentStatus', 'paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'token'],
             'refund' => ['paymentId', 'price', 'currency', 'conversationId'],
             'refund-v2' => ['paymentId', 'price', 'currency', 'conversationId'],
+            // BKM endpoints
+            'bkm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'bkm-retrieve' => ['paymentId', 'conversationId', 'paymentStatus'],
+            // APM endpoints
+            'apm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            // iyzico Link endpoints
+            'iyzilink-create' => ['paymentId', 'conversationId'],
+            // Reporting endpoints (no signature in response)
+            'reporting-payment-detail' => [],
+            'reporting-payment-transaction' => [],
+            'reporting-scroll-transaction' => [],
+            // Callback redirect signature verification
+            'callback-redirect' => ['conversationData', 'conversationId', 'mdStatus', 'paymentId', 'status'],
         ];
 
         return $map[$endpoint] ?? null;
