@@ -1,0 +1,72 @@
+{
+  "plan": "AcceptNotificationRequest.php rewrite for real iyzico webhook format",
+  "session": "hyperplan-synthesis",
+  "consensus": [
+    "HMAC-SHA256 signature verification with hash_equals() is essential",
+    "Two payload formats (Direct vs HPP) with different HMAC concatenation orders",
+    "strtoupper() status mapping: SUCCESS→COMPLETED, FAILURE→FAILED",
+    "Base class change from Omnipay Common AbstractRequest to Omnipay\\Iyzico\\Message\\AbstractRequest",
+    "iyziEventType should be included in getMessage() output",
+    "getTransactionReference(): paymentId → iyziPaymentId → token → null fallback"
+  ],
+  "decisions": {
+    "isValid_method": {
+      "decision": "isValid() stays separate public method for user control",
+      "constraint": "send() MUST NOT auto-validate or throw. User calls isValid() explicitly.",
+      "reasoning": "SRP: send() sends data, isValid() verifies. User may want to log invalid signatures, collect metrics, or return 200 with error body instead of throwing."
+    },
+    "two_formats_single_class": {
+      "decision": "Single AcceptNotificationRequest class handles both Direct and HPP",
+      "constraint": "Distinguish format by isset($data['token']). Use different concat order per format in isValid().",
+      "reasoning": "Two separate classes would break Gateway::acceptNotification() return type and complicate DX."
+    },
+    "backward_compatibility": {
+      "decision": "Do NOT preserve old mdStatus/errorMessage/errorCode handling",
+      "constraint": "AcceptNotificationRequest is for webhooks ONLY. Synchronous 3DS callbacks are handled by CompletePurchaseRequest.",
+      "reasoning": "Keeping both in one class creates a 'Christmas tree' anti-pattern. This is a breaking change, document as such."
+    },
+    "status_mapping": {
+      "decision": "STATUS_COMPLETED for SUCCESS, STATUS_FAILED for FAILURE, STATUS_PENDING for all other values",
+      "constraint": "PENDING is safer than FAILED for intermediate states (INIT_THREEDS, CALLBACK_THREEDS, etc.) because it prevents accidental refund/void.",
+      "reasoning": "PENDING allows the merchant to poll for final status. FAILED would prematurely terminate the payment flow. Log unknown statuses via getMessage()."
+    },
+    "merchantId_validation": {
+      "decision": "Skip in v1. Add as future enhancement.",
+      "reasoning": "Replay protection is a deployment-layer concern (IP whitelist, idempotency key in DB)."
+    },
+    "iyziEventTime_validation": {
+      "decision": "Skip in v1. iyzico retry mechanism handles freshness.",
+      "reasoning": "iyzico retries within 15-minute windows. Timestamp drift tolerance adds complexity without proportional security gain."
+    },
+    "iyziReferenceCode_idempotency": {
+      "decision": "Expose via getNotificationData()['iyziReferenceCode'], do NOT implement idempotency in library.",
+      "reasoning": "Idempotency is application-layer responsibility. Library should expose the unique reference code only."
+    },
+    "reconfirm": {
+      "decision": "Do NOT add re-confirm API call in send().",
+      "reasoning": "Rate limiting, latency, and API credential concerns. Webhook + signature verification IS the trust mechanism."
+    },
+    "content_type": {
+      "decision": "Keep array-based $_POST input. Document in README that JSON webhooks need json_decode(file_get_contents('php://input'), true) before passing to acceptNotification().",
+      "reasoning": "Frameworks handle this. Library should not add HTTP body parsing dependency."
+    },
+    "subscription_webhooks": {
+      "decision": "AcceptNotificationRequest will receive subscription webhooks but return STATUS_PENDING + unsupported event type message.",
+      "reasoning": "Subscription format has completely different fields. Support can be added later in a separate request class."
+    }
+  },
+  "implementation_order": [
+    "1. ACCEPTNOTIFICATIONREQUEST: Change base class, preserve initialize() override, remove mdStatus/errorMessage/errorCode",
+    "2. ACCEPTNOTIFICATIONREQUEST: Implement getSignature()/setSignature(), update getTransactionStatus/getMessage/getTransactionReference",
+    "3. ACCEPTNOTIFICATIONREQUEST: Implement isValid() with Direct and HPP HMAC-SHA256",
+    "4. TESTS: Rewrite AcceptNotificationRequestTest.php with 7+ scenarios",
+    "5. README: Update webhook usage example with signature verification",
+    "6. VERIFY: php -l, full PHPUnit suite, check no other tests break"
+  ],
+  "excluded": [
+    "Do NOT modify AbstractRequest.php, Gateway.php, or any other Message class",
+    "Do NOT add idempotency, merchantId validation, iyziEventTime checks, or re-confirm API calls in v1",
+    "Do NOT touch bagisto-iyzico package — that's a separate repo",
+    "Do NOT split into separate DirectWebhookRequest / HPPWebhookRequest classes"
+  ]
+}

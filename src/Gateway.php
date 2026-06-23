@@ -224,6 +224,21 @@ class Gateway extends AbstractGateway
         return $this->createRequest(Message\PayWithIyzicoRetrieveRequest::class, $parameters);
     }
 
+    public function checkoutFormPreAuth(array $parameters = []): Message\CheckoutFormPreAuthRequest
+    {
+        return $this->createRequest(Message\CheckoutFormPreAuthRequest::class, $parameters);
+    }
+
+    public function payWithIyzicoPreAuth(array $parameters = []): Message\PayWithIyzicoPreAuthRequest
+    {
+        return $this->createRequest(Message\PayWithIyzicoPreAuthRequest::class, $parameters);
+    }
+
+    public function basicThreedsPreAuth(array $parameters = []): Message\BasicThreedsPreAuthRequest
+    {
+        return $this->createRequest(Message\BasicThreedsPreAuthRequest::class, $parameters);
+    }
+
     public function createCard(array $parameters = []): Message\CreateCardRequest
     {
         return $this->createRequest(Message\CreateCardRequest::class, $parameters);
@@ -237,5 +252,25 @@ class Gateway extends AbstractGateway
     public function listCards(array $parameters = []): Message\ListCardsRequest
     {
         return $this->createRequest(Message\ListCardsRequest::class, $parameters);
+    }
+
+    public function purchasePlusInstallment(array $parameters = []): Message\PlusInstallmentPaymentRequest
+    {
+        return $this->createRequest(Message\PlusInstallmentPaymentRequest::class, $parameters);
+    }
+
+    public function fetchLoyalty(array $parameters = []): Message\LoyaltyRequest
+    {
+        return $this->createRequest(Message\LoyaltyRequest::class, $parameters);
+    }
+
+    public function refundToBalance(array $parameters = []): Message\RefundToBalanceRequest
+    {
+        return $this->createRequest(Message\RefundToBalanceRequest::class, $parameters);
+    }
+
+    public function settlementToBalance(array $parameters = []): Message\SettlementToBalanceRequest
+    {
+        return $this->createRequest(Message\SettlementToBalanceRequest::class, $parameters);
     }
 }
