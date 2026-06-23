@@ -8,6 +8,7 @@ use Iyzipay\Model\PaymentChannel as IyzicoPaymentChannel;
 use Iyzipay\Model\PaymentGroup as IyzicoPaymentGroup;
 use Iyzipay\Options as IyzicoOptions;
 use Omnipay\Common\CreditCard;
+use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Item;
 use Omnipay\Iyzico\Message\AbstractRequest;
 use PHPUnit\Framework\TestCase;
@@ -191,8 +192,21 @@ class AbstractRequestTest extends TestCase
             'IRR'                  => ['IRR', IyzicoCurrency::IRR],
             'NOK'                  => ['NOK', IyzicoCurrency::NOK],
             'CHF'                  => ['CHF', IyzicoCurrency::CHF],
-            'unknown falls back to TL' => ['XYZ', IyzicoCurrency::TL],
         ];
+    }
+
+    public function testMapCurrencyThrowsOnUnknownCurrency(): void
+    {
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('Unsupported currency:');
+        $this->request->publicMapCurrency('XYZ');
+    }
+
+    public function testMapCurrencyThrowsOnEmptyCurrency(): void
+    {
+        $this->expectException(InvalidRequestException::class);
+        $this->expectExceptionMessage('Unsupported currency:');
+        $this->request->publicMapCurrency('');
     }
 
     // ─── mapPaymentChannel Tests ────────────────────────────────────────────

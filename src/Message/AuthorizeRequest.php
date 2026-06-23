@@ -60,11 +60,17 @@ class AuthorizeRequest extends AbstractRequest
             // not a redirect URL or token. Pre-auth via 3DS still goes through the same
             // /payment/3dsecure/initialize endpoint; only the completion step differs
             // (handled later via CompletePurchaseRequest -> ThreedsPayment::create()).
-            return new RedirectResponse($this, $result);
+            $response = new RedirectResponse($this, $result);
+            $response->applySignature($this->getSecretKey(), '3ds-preauth-init');
+
+            return $response;
         }
 
         $result = PaymentPreAuth::create($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'preauth');
+
+        return $response;
     }
 }

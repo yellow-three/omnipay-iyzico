@@ -55,6 +55,7 @@ class CheckoutRequest extends AbstractRequest
         $response = new RedirectResponse($this, $result);
         $response->setRedirectUrl($result->getPaymentPageUrl() ?? '');
         $response->setRedirectMethod('GET');
+        $response->applySignature($this->getSecretKey(), 'checkout-init');
 
         return $response;
     }

@@ -8,6 +8,7 @@ use Iyzipay\Model\PaymentChannel as IyzicoPaymentChannel;
 use Iyzipay\Model\PaymentGroup as IyzicoPaymentGroup;
 use Iyzipay\Options as IyzicoOptions;
 use Omnipay\Common\CreditCard;
+use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Message\AbstractRequest as BaseAbstractRequest;
 
 abstract class AbstractRequest extends BaseAbstractRequest
@@ -196,7 +197,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
             'IRR' => IyzicoCurrency::IRR,
             'NOK' => IyzicoCurrency::NOK,
             'CHF' => IyzicoCurrency::CHF,
-            default => IyzicoCurrency::TL,
+            default => throw new InvalidRequestException('Unsupported currency: ' . $currency . '. Supported: TRY/USD/EUR/GBP/RUB/IRR/NOK/CHF'),
         };
     }
 

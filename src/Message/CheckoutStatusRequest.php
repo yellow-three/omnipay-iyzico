@@ -25,7 +25,10 @@ class CheckoutStatusRequest extends AbstractRequest
 
         $result = CheckoutForm::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'checkout-retrieve');
+
+        return $response;
     }
 
     public function getToken(): string

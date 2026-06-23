@@ -64,6 +64,7 @@ class PayWithIyzicoInitializeRequest extends AbstractRequest
         $response = new RedirectResponse($this, $result);
         $response->setRedirectUrl($result->getPayWithIyzicoPageUrl() ?? '');
         $response->setRedirectMethod('GET');
+        $response->applySignature($this->getSecretKey(), 'pwi-init');
 
         return $response;
     }

@@ -28,6 +28,9 @@ class FetchTransactionRequest extends AbstractRequest
 
         $result = Payment::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'payment-detail');
+
+        return $response;
     }
 }

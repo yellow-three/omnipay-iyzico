@@ -32,6 +32,9 @@ class CaptureRequest extends AbstractRequest
 
         $result = PaymentPostAuth::create($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'postauth');
+
+        return $response;
     }
 }

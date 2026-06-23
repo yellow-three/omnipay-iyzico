@@ -39,7 +39,10 @@ class CompletePurchaseRequest extends AbstractRequest
 
         $result = ThreedsPayment::create($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), '3ds-auth');
+
+        return $response;
     }
 
     public function getConversationData(): string

@@ -62,11 +62,17 @@ class PurchaseRequest extends AbstractRequest
             // HTML form (getHtmlContent()) that must be rendered directly in the browser,
             // which auto-submits to the issuing bank's 3DS page. Check
             // $response->getHtmlContent() before falling back to getRedirectUrl().
-            return new RedirectResponse($this, $result);
+            $response = new RedirectResponse($this, $result);
+            $response->applySignature($this->getSecretKey(), '3ds-init');
+
+            return $response;
         }
 
         $result = Payment::create($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'non-3ds');
+
+        return $response;
     }
 }
