@@ -2,6 +2,7 @@
 
 namespace Omnipay\Iyzico\Tests\Message;
 
+use Iyzipay\Model\RefundReason;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Iyzico\Message\RefundRequest;
@@ -26,7 +27,7 @@ class RefundRequestTest extends TestCase
         $this->request->setAmount('50.00');
         $this->request->setCurrency('TRY');
         $this->request->setLocale('TR');
-        $this->request->setReason('buyer request');
+        $this->request->setReason(RefundReason::BUYER_REQUEST);
 
         $data = $this->request->getData();
 
@@ -35,7 +36,7 @@ class RefundRequestTest extends TestCase
         $this->assertSame('tx_123', $data['paymentTransactionId']);
         $this->assertSame('50.00', $data['price']);
         $this->assertSame('TRY', $data['currency']);
-        $this->assertSame('buyer request', $data['reason']);
+        $this->assertSame(RefundReason::BUYER_REQUEST, $data['reason']);
     }
 
     public function testGetDataThrowsWhenPaymentTransactionIdMissing(): void
@@ -108,6 +109,6 @@ class RefundRequestTest extends TestCase
 
         $data = $this->request->getData();
 
-        $this->assertSame('buyer request', $data['reason']);
+        $this->assertSame(RefundReason::BUYER_REQUEST, $data['reason']);
     }
 }

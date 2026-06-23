@@ -3,6 +3,7 @@
 namespace Omnipay\Iyzico\Message;
 
 use Iyzipay\Model\Refund;
+use Iyzipay\Model\RefundReason;
 
 class RefundRequest extends AbstractRequest
 {
@@ -16,7 +17,7 @@ class RefundRequest extends AbstractRequest
             'paymentTransactionId' => $this->getParameter('paymentTransactionId'),
             'price' => $this->getAmount(),
             'currency' => $this->getCurrency(),
-            'reason' => $this->getParameter('reason') ?? 'buyer request',
+            'reason' => $this->getParameter('reason') ?? RefundReason::BUYER_REQUEST,
         ];
     }
 
@@ -34,7 +35,10 @@ class RefundRequest extends AbstractRequest
 
         $result = Refund::create($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'refund');
+
+        return $response;
     }
 
     public function getPaymentTransactionId(): string
