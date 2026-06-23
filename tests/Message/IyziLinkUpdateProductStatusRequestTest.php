@@ -3,7 +3,7 @@
 namespace Omnipay\Iyzico\Tests\Message;
 
 use Iyzipay\ApiResource;
-use Iyzipay\HttpClient;
+use Iyzipay\DefaultHttpClient;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Iyzico\Message\IyziLinkUpdateProductStatusRequest;
@@ -76,8 +76,6 @@ class IyziLinkUpdateProductStatusRequestTest extends TestCase
 
     public function testSendDataReturnsResponse(): void
     {
-        $this->markTestIncomplete('SDK IyziLinkUpdateProductStatus::create() calls patch() which is not defined on Iyzipay\HttpClient interface');
-
         $this->request->setLocale('TR');
         $this->request->setConversationId('conv_upd');
         $this->request->setToken('token_upd');
@@ -88,9 +86,7 @@ class IyziLinkUpdateProductStatusRequestTest extends TestCase
 
         $data = $this->request->getData();
 
-        $httpClient = $this->getMockBuilder(HttpClient::class)
-            ->addMethods(['patch'])
-            ->getMock();
+        $httpClient = $this->createMock(DefaultHttpClient::class);
         $httpClient->expects($this->once())
             ->method('patch')
             ->willReturn(json_encode([

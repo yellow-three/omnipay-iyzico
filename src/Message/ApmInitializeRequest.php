@@ -11,6 +11,8 @@ class ApmInitializeRequest extends AbstractRequest
     {
         $this->validate('amount');
 
+        $card = $this->getCard();
+
         return [
             'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
@@ -24,12 +26,14 @@ class ApmInitializeRequest extends AbstractRequest
             'merchantOrderId' => $this->getMerchantOrderId(),
             'countryCode' => $this->getCountryCode(),
             'merchantCallbackUrl' => $this->getReturnUrl(),
+            'card' => $card,
         ];
     }
 
     public function sendData($data): Response|RedirectResponse
     {
         $options = $this->createIyzicoOptions();
+        $card = $data['card'];
 
         $request = new \Iyzipay\Request\CreateApmInitializeRequest();
         $request->setLocale($this->mapLocale($data['locale']));
@@ -44,6 +48,14 @@ class ApmInitializeRequest extends AbstractRequest
         $request->setMerchantOrderId($data['merchantOrderId']);
         $request->setCountryCode($data['countryCode']);
         $request->setMerchantCallbackUrl($data['merchantCallbackUrl']);
+
+        if ($card) {
+            $request->setBuyer($this->buildBuyer($card));
+            $request->setShippingAddress($this->buildShippingAddress($card));
+            $request->setBillingAddress($this->buildBillingAddress($card));
+        }
+
+        $request->setBasketItems($this->buildBasketItems());
 
         $result = Apm::create($request, $options);
 
