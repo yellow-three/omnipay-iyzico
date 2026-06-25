@@ -239,6 +239,15 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             'bkm-retrieve' => ['paymentId', 'conversationId', 'paymentStatus'],
             // APM endpoints
             'apm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            // Marketplace endpoints (no signature in response)
+            'marketplace-create-sub-merchant' => [],
+            'marketplace-update-sub-merchant' => [],
+            'marketplace-retrieve-sub-merchant' => [],
+            'marketplace-approve-payment' => [],
+            'marketplace-disapprove-payment' => [],
+            'marketplace-cross-booking-from' => [],
+            'marketplace-cross-booking-to' => [],
+            'marketplace-update-payment-item' => [],
             // iyzico Link endpoints
             'iyzilink-create' => ['paymentId', 'conversationId'],
             // Reporting endpoints (no signature in response)

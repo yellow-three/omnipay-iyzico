@@ -348,4 +348,193 @@ class Gateway extends AbstractGateway
     {
         return $this->createRequest(Message\ApmRetrieveRequest::class, $parameters);
     }
+
+    // Marketplace methods
+
+    public function createSubMerchant(array $parameters = []): Message\Marketplace\CreateSubMerchantRequest
+    {
+        return $this->createRequest(Message\Marketplace\CreateSubMerchantRequest::class, $parameters);
+    }
+
+    public function updateSubMerchant(array $parameters = []): Message\Marketplace\UpdateSubMerchantRequest
+    {
+        return $this->createRequest(Message\Marketplace\UpdateSubMerchantRequest::class, $parameters);
+    }
+
+    public function retrieveSubMerchant(array $parameters = []): Message\Marketplace\RetrieveSubMerchantRequest
+    {
+        return $this->createRequest(Message\Marketplace\RetrieveSubMerchantRequest::class, $parameters);
+    }
+
+    public function approvePayment(array $parameters = []): Message\Marketplace\ApprovePaymentRequest
+    {
+        return $this->createRequest(Message\Marketplace\ApprovePaymentRequest::class, $parameters);
+    }
+
+    public function disapprovePayment(array $parameters = []): Message\Marketplace\DisapprovePaymentRequest
+    {
+        return $this->createRequest(Message\Marketplace\DisapprovePaymentRequest::class, $parameters);
+    }
+
+    public function crossBookingFrom(array $parameters = []): Message\Marketplace\CrossBookingFromRequest
+    {
+        return $this->createRequest(Message\Marketplace\CrossBookingFromRequest::class, $parameters);
+    }
+
+    public function crossBookingTo(array $parameters = []): Message\Marketplace\CrossBookingToRequest
+    {
+        return $this->createRequest(Message\Marketplace\CrossBookingToRequest::class, $parameters);
+    }
+
+    public function updateSubMerchantPaymentItem(array $parameters = []): Message\Marketplace\SubMerchantPaymentItemUpdateRequest
+    {
+        return $this->createRequest(Message\Marketplace\SubMerchantPaymentItemUpdateRequest::class, $parameters);
+    }
+
+    // Subscription methods
+
+    // Products
+    public function createSubscriptionProduct(array $parameters = []): Message\Subscription\CreateProductRequest
+    {
+        return $this->createRequest(Message\Subscription\CreateProductRequest::class, $parameters);
+    }
+
+    public function updateSubscriptionProduct(array $parameters = []): Message\Subscription\UpdateProductRequest
+    {
+        return $this->createRequest(Message\Subscription\UpdateProductRequest::class, $parameters);
+    }
+
+    public function retrieveSubscriptionProduct(array $parameters = []): Message\Subscription\RetrieveProductRequest
+    {
+        return $this->createRequest(Message\Subscription\RetrieveProductRequest::class, $parameters);
+    }
+
+    public function deleteSubscriptionProduct(array $parameters = []): Message\Subscription\DeleteProductRequest
+    {
+        return $this->createRequest(Message\Subscription\DeleteProductRequest::class, $parameters);
+    }
+
+    public function listSubscriptionProducts(array $parameters = []): Message\Subscription\ListProductsRequest
+    {
+        return $this->createRequest(Message\Subscription\ListProductsRequest::class, $parameters);
+    }
+
+    // Pricing Plans
+    public function createSubscriptionPricingPlan(array $parameters = []): Message\Subscription\CreatePricingPlanRequest
+    {
+        return $this->createRequest(Message\Subscription\CreatePricingPlanRequest::class, $parameters);
+    }
+
+    public function updateSubscriptionPricingPlan(array $parameters = []): Message\Subscription\UpdatePricingPlanRequest
+    {
+        return $this->createRequest(Message\Subscription\UpdatePricingPlanRequest::class, $parameters);
+    }
+
+    public function retrieveSubscriptionPricingPlan(array $parameters = []): Message\Subscription\RetrievePricingPlanRequest
+    {
+        return $this->createRequest(Message\Subscription\RetrievePricingPlanRequest::class, $parameters);
+    }
+
+    public function deleteSubscriptionPricingPlan(array $parameters = []): Message\Subscription\DeletePricingPlanRequest
+    {
+        return $this->createRequest(Message\Subscription\DeletePricingPlanRequest::class, $parameters);
+    }
+
+    public function listSubscriptionPricingPlans(array $parameters = []): Message\Subscription\ListPricingPlanRequest
+    {
+        return $this->createRequest(Message\Subscription\ListPricingPlanRequest::class, $parameters);
+    }
+
+    // Customers
+    public function createSubscriptionCustomer(array $parameters = []): Message\Subscription\CreateCustomerRequest
+    {
+        return $this->createRequest(Message\Subscription\CreateCustomerRequest::class, $parameters);
+    }
+
+    public function updateSubscriptionCustomer(array $parameters = []): Message\Subscription\UpdateCustomerRequest
+    {
+        return $this->createRequest(Message\Subscription\UpdateCustomerRequest::class, $parameters);
+    }
+
+    public function retrieveSubscriptionCustomer(array $parameters = []): Message\Subscription\RetrieveCustomerRequest
+    {
+        return $this->createRequest(Message\Subscription\RetrieveCustomerRequest::class, $parameters);
+    }
+
+    public function deleteSubscriptionCustomer(array $parameters = []): Message\Subscription\DeleteCustomerRequest
+    {
+        return $this->createRequest(Message\Subscription\DeleteCustomerRequest::class, $parameters);
+    }
+
+    public function listSubscriptionCustomers(array $parameters = []): Message\Subscription\ListCustomersRequest
+    {
+        return $this->createRequest(Message\Subscription\ListCustomersRequest::class, $parameters);
+    }
+
+    // Subscriptions
+    public function createSubscription(array $parameters = []): Message\Subscription\CreateSubscriptionRequest
+    {
+        return $this->createRequest(Message\Subscription\CreateSubscriptionRequest::class, $parameters);
+    }
+
+    public function createSubscriptionWithCustomer(array $parameters = []): Message\Subscription\CreateSubscriptionWithCustomerRequest
+    {
+        return $this->createRequest(Message\Subscription\CreateSubscriptionWithCustomerRequest::class, $parameters);
+    }
+
+    public function createSubscriptionCheckoutForm(array $parameters = []): Message\Subscription\CreateCheckoutFormRequest
+    {
+        return $this->createRequest(Message\Subscription\CreateCheckoutFormRequest::class, $parameters);
+    }
+
+    public function retrieveSubscriptionCheckoutForm(array $parameters = []): Message\Subscription\RetrieveCheckoutFormRequest
+    {
+        return $this->createRequest(Message\Subscription\RetrieveCheckoutFormRequest::class, $parameters);
+    }
+
+    public function retrieveSubscriptionDetails(array $parameters = []): Message\Subscription\DetailsRequest
+    {
+        return $this->createRequest(Message\Subscription\DetailsRequest::class, $parameters);
+    }
+
+    public function activateSubscription(array $parameters = []): Message\Subscription\ActivateRequest
+    {
+        return $this->createRequest(Message\Subscription\ActivateRequest::class, $parameters);
+    }
+
+    public function cancelSubscription(array $parameters = []): Message\Subscription\CancelRequest
+    {
+        return $this->createRequest(Message\Subscription\CancelRequest::class, $parameters);
+    }
+
+    public function retrySubscription(array $parameters = []): Message\Subscription\RetryRequest
+    {
+        return $this->createRequest(Message\Subscription\RetryRequest::class, $parameters);
+    }
+
+    public function upgradeSubscription(array $parameters = []): Message\Subscription\UpgradeRequest
+    {
+        return $this->createRequest(Message\Subscription\UpgradeRequest::class, $parameters);
+    }
+
+    public function listSubscriptions(array $parameters = []): Message\Subscription\ListRequest
+    {
+        return $this->createRequest(Message\Subscription\ListRequest::class, $parameters);
+    }
+
+    public function searchSubscriptions(array $parameters = []): Message\Subscription\SearchRequest
+    {
+        return $this->createRequest(Message\Subscription\SearchRequest::class, $parameters);
+    }
+
+    // Card Update
+    public function updateSubscriptionCard(array $parameters = []): Message\Subscription\CardUpdateRequest
+    {
+        return $this->createRequest(Message\Subscription\CardUpdateRequest::class, $parameters);
+    }
+
+    public function updateSubscriptionCardForSubscription(array $parameters = []): Message\Subscription\CardUpdateWithSubscriptionReferenceCodeRequest
+    {
+        return $this->createRequest(Message\Subscription\CardUpdateWithSubscriptionReferenceCodeRequest::class, $parameters);
+    }
 }
