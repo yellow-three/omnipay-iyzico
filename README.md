@@ -318,6 +318,569 @@ Call `$response->isValid()` to verify the signature automatically.
 | `FAILURE` | `STATUS_FAILED` |
 | `INIT_THREEDS`, `CALLBACK_THREEDS`, `BKM_POS_SELECTED`, `INIT_APM`, `INIT_CONTACTLESS`, `INIT_BANK_TRANSFER`, `INIT_CREDIT`, `PENDING_CREDIT` | `STATUS_PENDING` |
 
+### PreAuth Checkout Form
+
+Initialize a pre-authorization via the iyzico checkout form:
+
+```php
+$response = $gateway->checkoutFormPreAuth([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'basketId' => 'order_123',
+    'returnUrl' => 'https://yoursite.com/payment/callback',
+    'enabledInstallments' => [2, 3, 6, 9],
+    'card' => $cardData,
+])->send();
+
+if ($response->isRedirect()) {
+    $response->redirect();
+}
+```
+
+### Pay with iyzico PreAuth
+
+Pre-authorization via the Pay with iyzico page:
+
+```php
+$response = $gateway->payWithIyzicoPreAuth([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'basketId' => 'order_123',
+    'returnUrl' => 'https://yoursite.com/payment/callback',
+    'card' => $cardData,
+    'buyer' => $buyerData,
+    'shippingAddress' => $shippingData,
+    'billingAddress' => $billingData,
+    'basketItems' => $basketItems,
+])->send();
+
+if ($response->isRedirect()) {
+    $response->redirect();
+}
+```
+
+### Basic 3D Secure PreAuth
+
+Direct card pre-authorization with 3DS:
+
+```php
+$response = $gateway->basicThreedsPreAuth([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'returnUrl' => 'https://yoursite.com/payment/callback',
+    'card' => [
+        'number' => '4543590000000006',
+        'expiryMonth' => '12',
+        'expiryYear' => '2030',
+        'cvv' => '123',
+    ],
+])->send();
+
+if ($response->isRedirect()) {
+    echo $response->getHtmlContent();
+}
+```
+
+### Refund to Balance
+
+Refund a payment to the buyer's iyzico balance:
+
+```php
+$response = $gateway->refundToBalance([
+    'paymentId' => 'pay_abc123',
+    'returnUrl' => 'https://yoursite.com/callback',
+])->send();
+
+if ($response->isSuccessful()) {
+    echo 'Refund successful';
+}
+```
+
+### Settlement to Balance
+
+Settle (transfer) funds from a sub-merchant to the main merchant balance:
+
+```php
+$response = $gateway->settlementToBalance([
+    'subMerchantKey' => 'smk_001',
+    'amount' => '50.00',
+    'returnUrl' => 'https://yoursite.com/callback',
+])->send();
+```
+
+### Plus Installment Payment
+
+Make a payment with plus installment support:
+
+```php
+$response = $gateway->purchasePlusInstallment([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'installment' => 3,
+    'connectorName' => 'akbank',
+    'plusInstallmentUsage' => 1,
+    'card' => $cardData,
+    'buyer' => $buyerData,
+    'shippingAddress' => $shippingData,
+    'billingAddress' => $billingData,
+    'basketItems' => $basketItems,
+])->send();
+```
+
+### Fetch Loyalty
+
+Query loyalty points for a card:
+
+```php
+$response = $gateway->fetchLoyalty([
+    'currency' => 'TRY',
+    'card' => [
+        'number' => '4543590000000006',
+        'expiryMonth' => '12',
+        'expiryYear' => '2030',
+    ],
+])->send();
+
+$balance = $response->getData()['balance'];
+```
+
+### iyzico Link
+
+Create and manage payment links:
+
+```php
+// Save a product
+$response = $gateway->iyziLinkSaveProduct([
+    'name' => 'Product A',
+    'description' => 'Product description',
+    'price' => 100.00,
+    'currencyCode' => 'TRY',
+    'addressIgnorable' => true,
+    'installmentRequested' => false,
+    'sourceType' => 'WEB',
+    'stockEnabled' => true,
+    'stockCount' => 100,
+])->send();
+
+$referenceCode = $response->getData()['productReferenceCode'];
+
+// Retrieve a product
+$response = $gateway->iyziLinkRetrieveProduct([
+    'productReferenceCode' => $referenceCode,
+])->send();
+
+// List all products
+$response = $gateway->iyziLinkRetrieveAllProduct()->send();
+
+// Delete a product
+$response = $gateway->iyziLinkDeleteProduct([
+    'productReferenceCode' => $referenceCode,
+])->send();
+
+// Update product status (ACTIVE / PASSIVE)
+$response = $gateway->iyziLinkUpdateProductStatus([
+    'productReferenceCode' => $referenceCode,
+    'status' => 'ACTIVE',
+])->send();
+
+// Create a fast link (single-use payment link)
+$response = $gateway->iyziLinkCreateFastLink([
+    'description' => 'Fast payment',
+    'price' => 50.00,
+    'currencyCode' => 'TRY',
+    'sourceType' => 'WEB',
+])->send();
+
+$payUrl = $response->getData()['payUrl'];
+
+// Search merchant products
+$response = $gateway->iyziLinkSearchMerchantProducts([
+    'page' => 1,
+    'count' => 10,
+])->send();
+```
+
+### Reporting
+
+Query payment reports:
+
+```php
+// Payment detail by paymentId
+$response = $gateway->reportingPaymentDetail([
+    'paymentId' => 'pay_abc123',
+])->send();
+
+// Payment transactions by date (YYYY-MM-DD)
+$response = $gateway->reportingPaymentTransaction([
+    'transactionDate' => '2024-01-15',
+    'page' => 0,
+])->send();
+
+// Scroll transaction (paginated)
+$response = $gateway->reportingScrollTransaction([
+    'transactionDate' => '2024-01-15',
+    'page' => 0,
+])->send();
+```
+
+### BKM Express
+
+Initialize and retrieve BKM Express payments:
+
+```php
+// Initialize BKM (full — with buyer/card data)
+$response = $gateway->bkmInitialize([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'basketId' => 'order_123',
+    'returnUrl' => 'https://yoursite.com/callback',
+    'enabledInstallments' => [2, 3, 6, 9],
+    'card' => $cardData,
+])->send();
+
+if ($response->isRedirect()) {
+    echo $response->getHtmlContent();
+}
+
+// Initialize BKM (basic — no card data required)
+$response = $gateway->basicBkmInitialize([
+    'amount' => '100.00',
+    'currency' => 'TRY',
+    'basketId' => 'order_123',
+    'returnUrl' => 'https://yoursite.com/callback',
+])->send();
+
+// Retrieve BKM status
+$response = $gateway->bkmStatus([
+    'paymentId' => 'pay_abc123',
+    'conversationId' => 'conv_123',
+])->send();
+```
+
+### APM (Alternative Payment Methods)
+
+Initialize payments via alternative methods (SOFORT, IDEAL, QIWI, GIROPAY):
+
+```php
+// Initialize APM payment
+$response = $gateway->apmInitialize([
+    'amount' => '100.00',
+    'currency' => 'EUR',
+    'basketId' => 'order_123',
+    'apmType' => 'SOFORT',
+    'merchantOrderId' => 'order_456',
+    'countryCode' => 'DE',
+    'returnUrl' => 'https://yoursite.com/callback',
+    'card' => $cardData,
+    'buyer' => $buyerData,
+    'shippingAddress' => $shippingData,
+    'billingAddress' => $billingData,
+    'basketItems' => $basketItems,
+])->send();
+
+if ($response->isRedirect()) {
+    $response->redirect();
+}
+
+// Retrieve APM payment status
+$response = $gateway->apmRetrieve([
+    'paymentId' => 'pay_abc123',
+    'conversationId' => 'conv_123',
+])->send();
+```
+
+### Marketplace (Sub-Merchant Operations)
+
+Manage sub-merchant accounts and payments in a marketplace:
+
+```php
+// Create a sub-merchant
+$response = $gateway->createSubMerchant([
+    'subMerchantExternalId' => 'ext_001',
+    'subMerchantType' => 'PERSONAL',
+    'price' => '1.0',
+    'currency' => 'TRY',
+    'name' => 'Sub Merchant Name',
+    'email' => 'sub@example.com',
+    'gsmNumber' => '+905551112233',
+    'address' => '123 Street',
+    'iban' => 'TR123456789012345678901234',
+    'contactName' => 'John',
+    'contactSurname' => 'Doe',
+    'identityNumber' => '11111111111',
+    'taxNumber' => '1234567890',
+])->send();
+
+$subMerchantKey = $response->getData()['subMerchantKey'];
+
+// Update a sub-merchant
+$response = $gateway->updateSubMerchant([
+    'subMerchantKey' => $subMerchantKey,
+    'email' => 'newemail@example.com',
+    'name' => 'Updated Name',
+    'iban' => 'TR987654321098765432109876',
+    'contactName' => 'Jane',
+    'contactSurname' => 'Doe',
+    'identityNumber' => '11111111111',
+    'taxNumber' => '1234567890',
+    'currency' => 'TRY',
+])->send();
+
+// Retrieve a sub-merchant
+$response = $gateway->retrieveSubMerchant([
+    'subMerchantExternalId' => 'ext_001',
+])->send();
+
+// Approve a sub-merchant payment
+$response = $gateway->approvePayment([
+    'paymentTransactionId' => 'tx_abc123',
+])->send();
+
+// Disapprove a sub-merchant payment
+$response = $gateway->disapprovePayment([
+    'paymentTransactionId' => 'tx_abc123',
+])->send();
+
+// Cross-booking: move money FROM sub-merchant to main merchant
+$response = $gateway->crossBookingFrom([
+    'subMerchantKey' => $subMerchantKey,
+    'price' => '10.00',
+    'reason' => 'Commission fee',
+])->send();
+
+// Cross-booking: move money TO sub-merchant from main merchant
+$response = $gateway->crossBookingTo([
+    'subMerchantKey' => $subMerchantKey,
+    'price' => '10.00',
+    'reason' => 'Bonus payment',
+])->send();
+
+// Update sub-merchant payment item
+$response = $gateway->updateSubMerchantPaymentItem([
+    'paymentTransactionId' => 'tx_abc123',
+    'subMerchantKey' => $subMerchantKey,
+    'subMerchantPrice' => '5.00',
+])->send();
+```
+
+### Subscription Management
+
+Full lifecycle for recurring subscription payments — products, pricing plans, customers, and subscriptions.
+
+#### Product & Pricing Plan Setup
+
+```php
+// Create a subscription product
+$response = $gateway->createSubscriptionProduct([
+    'name' => 'Premium Plan',
+    'description' => 'Monthly premium access',
+])->send();
+
+$productRefCode = $response->getData()['productReferenceCode'];
+
+// Create a pricing plan for the product
+$response = $gateway->createSubscriptionPricingPlan([
+    'name' => 'Monthly Premium',
+    'productReferenceCode' => $productRefCode,
+    'price' => '49.99',
+    'currencyCode' => 'TRY',
+    'paymentInterval' => 'MONTHLY',
+    'paymentIntervalCount' => 1,
+    'trialPeriodDays' => 7,
+    'recurrenceCount' => 12,
+])->send();
+
+$planRefCode = $response->getData()['pricingPlanReferenceCode'];
+
+// List / retrieve / update / delete products and plans
+$response = $gateway->listSubscriptionProducts()->send();
+$response = $gateway->retrieveSubscriptionProduct([
+    'productReferenceCode' => $productRefCode,
+])->send();
+$response = $gateway->deleteSubscriptionProduct([
+    'productReferenceCode' => $productRefCode,
+])->send();
+
+$response = $gateway->listSubscriptionPricingPlans()->send();
+$response = $gateway->retrieveSubscriptionPricingPlan([
+    'pricingPlanReferenceCode' => $planRefCode,
+])->send();
+$response = $gateway->deleteSubscriptionPricingPlan([
+    'pricingPlanReferenceCode' => $planRefCode,
+])->send();
+```
+
+#### Customer Management
+
+```php
+// Create a customer
+$response = $gateway->createSubscriptionCustomer([
+    'email' => 'user@example.com',
+    'gsmNumber' => '+905551112233',
+    'name' => 'John',
+    'surname' => 'Doe',
+    'identityNumber' => '11111111111',
+    'billingAddress' => '123 Street',
+    'billingCity' => 'Istanbul',
+    'billingCountry' => 'Turkey',
+    'billingZipCode' => '34000',
+    'shippingAddress' => '123 Street',
+    'shippingCity' => 'Istanbul',
+    'shippingCountry' => 'Turkey',
+    'shippingZipCode' => '34000',
+])->send();
+
+$customerRefCode = $response->getData()['customerReferenceCode'];
+
+// List / retrieve / update / delete customers
+$response = $gateway->listSubscriptionCustomers()->send();
+$response = $gateway->retrieveSubscriptionCustomer([
+    'customerReferenceCode' => $customerRefCode,
+])->send();
+$response = $gateway->deleteSubscriptionCustomer([
+    'customerReferenceCode' => $customerRefCode,
+])->send();
+```
+
+#### Create Subscription (with card on file)
+
+```php
+$response = $gateway->createSubscription([
+    'pricingPlanReferenceCode' => $planRefCode,
+    'subscriptionInitialStatus' => 'ACTIVE',
+    'cardNumber' => '4543590000000006',
+    'cardHolderName' => 'John Doe',
+    'expireMonth' => '12',
+    'expireYear' => '2030',
+    'cvc' => '123',
+    'cardName' => 'My Card',
+    'customerEmail' => 'user@example.com',
+    'customerGsmNumber' => '+905551112233',
+    'customerName' => 'John',
+    'customerSurname' => 'Doe',
+    'customerIdentityNumber' => '11111111111',
+    'customerBillingAddress' => '123 Street',
+    'customerBillingCity' => 'Istanbul',
+    'customerBillingCountry' => 'Turkey',
+    'customerBillingZipCode' => '34000',
+    'customerShippingAddress' => '123 Street',
+    'customerShippingCity' => 'Istanbul',
+    'customerShippingCountry' => 'Turkey',
+    'customerShippingZipCode' => '34000',
+])->send();
+
+$subscriptionRefCode = $response->getData()['subscriptionReferenceCode'];
+```
+
+#### Create Subscription (with existing customer)
+
+```php
+$response = $gateway->createSubscriptionWithCustomer([
+    'pricingPlanReferenceCode' => $planRefCode,
+    'customerReferenceCode' => $customerRefCode,
+    'subscriptionInitialStatus' => 'ACTIVE',
+])->send();
+```
+
+#### Subscription Checkout Form
+
+Let the customer enter their own card via iyzico's hosted form:
+
+```php
+$response = $gateway->createSubscriptionCheckoutForm([
+    'pricingPlanReferenceCode' => $planRefCode,
+    'callbackUrl' => 'https://yoursite.com/subscription/callback',
+    'subscriptionInitialStatus' => 'ACTIVE',
+    'customerEmail' => 'user@example.com',
+    'customerName' => 'John',
+    'customerSurname' => 'Doe',
+    'customerIdentityNumber' => '11111111111',
+    'customerBillingAddress' => '123 Street',
+    'customerBillingCity' => 'Istanbul',
+    'customerBillingCountry' => 'Turkey',
+    'customerBillingZipCode' => '34000',
+    'customerShippingAddress' => '123 Street',
+    'customerShippingCity' => 'Istanbul',
+    'customerShippingCountry' => 'Turkey',
+    'customerShippingZipCode' => '34000',
+])->send();
+
+if ($response->isRedirect()) {
+    $response->redirect();
+}
+
+// After callback
+$response = $gateway->retrieveSubscriptionCheckoutForm([
+    'token' => 'token_from_callback',
+])->send();
+```
+
+#### Subscription Lifecycle
+
+```php
+// Retrieve subscription details
+$response = $gateway->retrieveSubscriptionDetails([
+    'subscriptionReferenceCode' => $subscriptionRefCode,
+])->send();
+
+// Activate (after initial PENDING status)
+$response = $gateway->activateSubscription([
+    'subscriptionReferenceCode' => $subscriptionRefCode,
+])->send();
+
+// Cancel
+$response = $gateway->cancelSubscription([
+    'subscriptionReferenceCode' => $subscriptionRefCode,
+])->send();
+
+// Retry a failed payment
+$response = $gateway->retrySubscription([
+    'subscriptionReferenceCode' => $subscriptionRefCode,
+])->send();
+
+// Upgrade to a new pricing plan
+$response = $gateway->upgradeSubscription([
+    'subscriptionReferenceCode' => $subscriptionRefCode,
+    'newPricingPlanReferenceCode' => $newPlanRefCode,
+    'upgradePeriod' => 'NEXT_PERIOD',
+    'useTrial' => false,
+    'resetRecurrenceCount' => true,
+])->send();
+
+// List subscriptions (paginated, filterable)
+$response = $gateway->listSubscriptions([
+    'page' => 0,
+    'count' => 10,
+    'customerReferenceCode' => $customerRefCode,
+    'subscriptionStatus' => 'ACTIVE',
+])->send();
+
+// Search subscriptions (paginated, filterable by date range)
+$response = $gateway->searchSubscriptions([
+    'page' => 0,
+    'count' => 10,
+    'pricingPlanReferenceCode' => $planRefCode,
+    'startDate' => '2024-01-01',
+    'endDate' => '2024-12-31',
+])->send();
+
+// Update card for all subscriptions of a customer (checkout form)
+$response = $gateway->updateSubscriptionCard([
+    'customerReferenceCode' => $customerRefCode,
+    'callbackUrl' => 'https://yoursite.com/card-update/callback',
+])->send();
+
+// Update card for a specific subscription (direct)
+$response = $gateway->updateSubscriptionCardForSubscription([
+    'subscriptionReferenceCode' => $subscriptionRefCode,
+    'cardNumber' => '5528790000000008',
+    'cardHolderName' => 'John Doe',
+    'expireMonth' => '06',
+    'expireYear' => '2031',
+    'cvc' => '456',
+])->send();
+```
+
 ## End-to-End 3DS Flow
 
 A complete 3D Secure payment flow from start to finish:
