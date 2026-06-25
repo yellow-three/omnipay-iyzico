@@ -93,7 +93,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('installment', $value);
     }
 
-    public function getIdentityNumber(): string
+    public function getIdentityNumber(): ?string
     {
         return $this->getParameter('identityNumber');
     }
