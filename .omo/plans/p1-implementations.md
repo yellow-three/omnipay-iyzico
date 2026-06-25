@@ -1,18 +1,31 @@
 # p1-implementations - Work Plan
 
+## Current State (Last Updated: 25 Jun 2026)
+
+| Wave | Features | Status | Commits |
+|------|----------|--------|---------|
+| A | PreAuth, RefundToBalance, PlusInstallment/Loyalty | ✅ **Complete** | `3986f59`, `c9796c0` |
+| B | BKM Express, APM, Reporting | ✅ **Complete** | `a217cb9`, `be92794`, `b457feb` |
+| C | iyzico Link | ✅ **Complete** | `b1fe422`, `a57bdfb`, `e431f02` |
+| D | Marketplace | ❌ **Not started** | — |
+| E | Subscription | ❌ **Not started** | — |
+| F | README update + Verification | ❌ **Not started** | — |
+
+**Tests:** 423 passing (1101 assertions) — all green. 7 feature areas implemented (42 new Message classes + tests).
+
+## Next Action
+Start **Wave D: Marketplace** — 8 sub-merchant/payment request classes.
+
+---
+
 ## TL;DR (For humans)
 
-**What you'll get:** Nine new feature groups added to the omnipay-iyzico gateway: PreAuth checkout forms, iyzico payment links, payment reporting, BKM Express, APM (alternative payment methods), full subscription management, marketplace/sub-merchant management, refund-to-balance, and installment/loyalty queries. Each comes with Gateway methods, request classes, response classes, and PHPUnit tests.
+**What you get:** Nine feature groups added to the omnipay-iyzico gateway. **6 of 9 done (Waves A/B/C). Remaining: Marketplace, Subscription, README.**
 
-**Why this approach:** All P1 items follow the exact same pattern as the 17 existing Message classes (extend AbstractRequest, implement getData/sendData, call SDK static method). Grouping by complexity (simple → medium → large → subscription) reduces risk — earlier phases validate the pattern before the big items. Subscription gets its own subdirectory because it has ~16 SDK operations (CRUD on products/pricing-plans/customers + lifecycle).
+**Why this approach:** All P1 items follow the exact same pattern as the 17 existing Message classes (extend AbstractRequest, implement getData/sendData, call SDK static method). Grouping by complexity (simple → medium → large → subscription) reduces risk.
 
-**What it will NOT do:** Touch existing P0/P2/P3 backlog items. Not modify existing Message class behavior. Not add signature verification for new GET endpoints (matching existing pattern for read-only queries).
-
-**Effort:** XL (~50 new Message classes, ~50 test files, 40+ Gateway methods)
-**Risk:** Medium — pattern is well-established (17 existing request classes follow the exact same template), but volume is high
-**Decisions to sanity-check:** Subscription scope (is full CRUD needed or just create/retrieve?), Marketplace scope (which sub-merchant types?), Gateway method naming for link/product operations
-
-Your next move: approve this plan. Full execution detail follows below.
+**Effort (remaining):** Large — Marketplace (~8 classes) + Subscription (~28 classes) + README
+**Risk (remaining):** Low — pattern is proven across 42 existing implementations
 
 ---
 
@@ -47,23 +60,23 @@ Your next move: approve this plan. Full execution detail follows below.
 - Evidence: .omo/evidence/task-<N>-p1-implementations.txt
 
 ## Execution strategy
-### Parallel execution waves
-- Wave A: Items 4, 11, 12 (simplest, independent)
-- Wave B: Items 7, 8, 6 (medium, independent)
-- Wave C: Item 5 (iyzico Link — multi-method)
-- Wave D: Item 10 (Marketplace — multi-method)
-- Wave E: Item 9 (Subscription — largest)
-- Wave F: README update + final verification
+### Execution waves — Progress
+| Wave | Items | Status | Details |
+|------|-------|--------|---------|
+| Wave A | Items 4, 11, 12 | ✅ **Complete** | PreAuth, RefundToBalance, PlusInstallment/Loyalty |
+| Wave B | Items 7, 8, 6 | ✅ **Complete** | BKM Express, APM, Reporting |
+| Wave C | Item 5 (iyzico Link) | ✅ **Complete** | 7 request classes, 7 test files |
+| Wave D | Item 10 (Marketplace) | ⬜ **Pending** | 8 sub-merchant/payment classes |
+| Wave E | Item 9 (Subscription) | ⬜ **Pending** | ~28 subscription classes |
+| Wave F | README + Verification | ⬜ **Pending** | After Waves D-E |
 
 ### Dependency matrix
 | Todo | Depends on | Blocks | Can parallelize with |
 | --- | --- | --- | --- |
 | All within a Wave | — | — | All others in same Wave |
-| Wave B | Wave A (pattern confidence) | — | — |
-| Wave C | Wave A | — | — |
-| Wave D | Wave A | — | — |
-| Wave E | Wave A | — | — |
-| Wave F (README) | Waves A-E | — | — |
+| Wave D | — (pattern proven) | — | — |
+| Wave E | — (pattern proven) | — | Wave D |
+| Wave F (README) | Waves D-E | — | — |
 | Verification | All | — | — |
 
 ## Todos
@@ -110,7 +123,7 @@ Your next move: approve this plan. Full execution detail follows below.
   QA scenarios: happy — getData() returns expected structure; failure — validation test. Evidence .omo/evidence/task-3-p1-implementations.txt
   Commit: Y | feat: add PlusInstallment and Loyalty support (P1 item 12)
 
-- [ ] 4. Add BKM Express support
+- [x] 4. Add BKM Express support
   What to do / Must NOT do:
   - Create `src/Message/BkmInitializeRequest.php` — calls `BkmInitialize::create(CreateBkmInitializeRequest)`, POST `/payment/bkm/initialize`. Returns RedirectResponse with htmlContent (BkmInitilize has getHtmlContent/getToken/getSignature)
   - Create `src/Message/BkmRetrieveRequest.php` — calls `Bkm::retrieve(RetrieveBkmRequest)`, POST `/payment/bkm/retrieve`. Returns Response
@@ -123,7 +136,7 @@ Your next move: approve this plan. Full execution detail follows below.
   QA scenarios: happy — getData() returns expected structure; failure — missing param. Evidence .omo/evidence/task-4-p1-implementations.txt
   Commit: Y | feat: add BKM Express support (P1 item 7)
 
-- [ ] 5. Add APM (Alternative Payment Methods) support
+- [x] 5. Add APM (Alternative Payment Methods) support
   What to do / Must NOT do:
   - Create `src/Message/ApmInitializeRequest.php` — calls `Apm::create(CreateApmInitializeRequest)`, POST `/payment/apm/initialize`. Include apmType param (SOFORT, IDEAL, QIWI, GIROPAY) using `ApmType` enum
   - Create `src/Message/ApmRetrieveRequest.php` — calls `Apm::retrieve(RetrieveApmRequest)`, POST `/payment/apm/retrieve`
@@ -136,7 +149,7 @@ Your next move: approve this plan. Full execution detail follows below.
   QA scenarios: happy — getData() returns expected structure with apmType; failure — missing required param. Evidence .omo/evidence/task-5-p1-implementations.txt
   Commit: Y | feat: add APM (Alternative Payment Methods) support (P1 item 8)
 
-- [ ] 6. Add Reporting support
+- [x] 6. Add Reporting support
   What to do / Must NOT do:
   - Create `src/Message/ReportingPaymentDetailRequest.php` — calls `ReportingPaymentDetail::create(ReportingPaymentDetailRequest)`, GET `/v2/reporting/payment/details`. Uses `reporting` query string builder
   - Create `src/Message/ReportingPaymentTransactionRequest.php` — calls `ReportingPaymentTransaction::create(ReportingPaymentTransactionRequest)`
@@ -151,25 +164,21 @@ Your next move: approve this plan. Full execution detail follows below.
   QA scenarios: happy — getData() structure; failure — date validation. Evidence .omo/evidence/task-6-p1-implementations.txt
   Commit: Y | feat: add Reporting support (P1 item 6)
 
-- [ ] 7. Add iyzico Link support
-  What to do / Must NOT do:
-  - Create `src/Message/Iyzilink\` subdirectory with files:
-    - `IyziLinkSaveProductRequest.php` — POST `/v2/iyzilink/products/`, calls `IyziLinkSaveProduct::create(IyziLinkSaveProductRequest)`
+- [x] 7. Add iyzico Link support
+  What was done / Actual implementation:
+  - Created 7 source files in `src/Message/` (flat, not subdirectory):
+    - `IyziLinkSaveProductRequest.php` — POST, calls `IyziLinkSaveProduct::create()`
     - `IyziLinkRetrieveProductRequest.php` — GET, calls `IyziLinkRetrieveProduct::retrieve()`
-    - `IyziLinkListProductsRequest.php` — GET, calls `IyziLinkRetrieveAllProduct::retrieve()`
+    - `IyziLinkRetrieveAllProductRequest.php` — GET, calls `IyziLinkRetrieveAllProduct::retrieve()`
     - `IyziLinkDeleteProductRequest.php` — DELETE, calls `IyziLinkDeleteProduct::delete()`
-    - `IyziLinkUpdateProductRequest.php` — PUT, calls `IyziLinkUpdateProduct::update()`
     - `IyziLinkUpdateProductStatusRequest.php` — PUT, calls `IyziLinkUpdateProductStatus::update()`
     - `IyziLinkCreateFastLinkRequest.php` — POST, calls `IyziLinkFastLink::create()`
     - `IyziLinkSearchMerchantProductsRequest.php` — GET, calls `IyziLinkSearchMerchantProducts::retrieve()`
-  - Add Gateway methods: `createPaymentLink()`, `retrievePaymentLink()`, `listPaymentLinks()`, `deletePaymentLink()`, `updatePaymentLink()`, `updatePaymentLinkStatus()`, `createFastLink()`, `searchMerchantProducts()`
-  - These use mixed HTTP methods (GET, POST, PUT, DELETE)
-  Do NOT add signature verification
-  Parallelization: Wave C | Blocked by: Wave A | Blocks: —
-  References: vendor/iyzico/iyzipay-php/src/Iyzipay/Model/Iyzilink/, vendor/iyzico/iyzipay-php/src/Iyzipay/Request/Iyzilink/, vendor/iyzico/iyzipay-php/samples/iyzilink_*.php
-  Acceptance criteria: vendor/bin/phpunit --no-coverage passes
-  QA scenarios: happy — each class getData() structure; failure — validation. Evidence .omo/evidence/task-7-p1-implementations.txt
-  Commit: Y | feat: add iyzico Link support (P1 item 5)
+  - Note: `IyziLinkUpdateProduct` does not exist in the SDK — skipped
+  - Gateway methods used actual naming: `iyziLinkSaveProduct()`, `iyziLinkRetrieveProduct()`, `iyziLinkRetrieveAllProduct()`, `iyziLinkDeleteProduct()`, `iyziLinkUpdateProductStatus()`, `iyziLinkCreateFastLink()`, `iyziLinkSearchMerchantProducts()`
+  - 7 test files covering all classes (43 tests, 97 assertions)
+  Plan note: original spec suggested subdirectory and 8 classes — actual implementation proved 7 flat files sufficient
+  Commits: `b1fe422` (impl), `a57bdfb` (gateway), `e431f02` (tests), `037004c` (fix)
 
 - [ ] 8. Add Marketplace support
   What to do / Must NOT do:
@@ -230,9 +239,22 @@ Your next move: approve this plan. Full execution detail follows below.
 - [ ] F4. Scope fidelity
 
 ## Commit strategy
-One commit per P1 item (9 commits), all on master. Format:
+One commit per P1 item, all on master. Format:
 ```
 feat: add <feature-name> support (P1 item <N>)
+```
+
+### Completed commits (Waves A-C)
+```
+3986f59 feat: add PreAuth Initialize support (P1 item 4)
+c9796c0 fix: coerce mapCurrency() return to string and cast getAmount() to float  [related]
+a217cb9 feat: add BKM Express support (P1 backlog #7)
+b1fe422 feat: add iyzico Link support (P1 backlog #5)
+b457feb feat: add Reporting support (P1 backlog #6)
+be92794 feat: add APM (Alternative Payment Methods) support (P1 backlog #8)
+a57bdfb feat: register BKM, iyzico Link, Reporting, APM in Gateway and Response signature map
+e431f02 test: add tests for APM, iyzico Link Retrieve/Delete/UpdateStatus/FastLink/SearchMerchantProducts
+037004c fix: restore buyer/shipping/billing/basketItems in ApmInitializeRequest, use DefaultHttpClient
 ```
 
 ## Success criteria
