@@ -239,4 +239,85 @@ class GatewayTest extends TestCase
 
         $this->assertInstanceOf(\Omnipay\Iyzico\Message\CompletePurchaseRequest::class, $request);
     }
+
+    // Marketplace methods
+
+    public function testCreateSubMerchantRequestCreation(): void
+    {
+        $request = $this->gateway->createSubMerchant([
+            'subMerchantExternalId' => 'ext_001',
+            'subMerchantType' => 'PERSONAL',
+            'price' => '1.0',
+            'currency' => 'TRY',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\CreateSubMerchantRequest::class, $request);
+    }
+
+    public function testUpdateSubMerchantRequestCreation(): void
+    {
+        $request = $this->gateway->updateSubMerchant([
+            'subMerchantKey' => 'smk_001',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\UpdateSubMerchantRequest::class, $request);
+    }
+
+    public function testRetrieveSubMerchantRequestCreation(): void
+    {
+        $request = $this->gateway->retrieveSubMerchant([
+            'subMerchantExternalId' => 'ext_001',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\RetrieveSubMerchantRequest::class, $request);
+    }
+
+    public function testApprovePaymentRequestCreation(): void
+    {
+        $request = $this->gateway->approvePayment([
+            'paymentTransactionId' => 'tx_001',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\ApprovePaymentRequest::class, $request);
+    }
+
+    public function testDisapprovePaymentRequestCreation(): void
+    {
+        $request = $this->gateway->disapprovePayment([
+            'paymentTransactionId' => 'tx_001',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\DisapprovePaymentRequest::class, $request);
+    }
+
+    public function testCrossBookingFromRequestCreation(): void
+    {
+        $request = $this->gateway->crossBookingFrom([
+            'subMerchantKey' => 'smk_001',
+            'price' => '10.00',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\CrossBookingFromRequest::class, $request);
+    }
+
+    public function testCrossBookingToRequestCreation(): void
+    {
+        $request = $this->gateway->crossBookingTo([
+            'subMerchantKey' => 'smk_001',
+            'price' => '10.00',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\CrossBookingToRequest::class, $request);
+    }
+
+    public function testUpdateSubMerchantPaymentItemRequestCreation(): void
+    {
+        $request = $this->gateway->updateSubMerchantPaymentItem([
+            'paymentTransactionId' => 'tx_001',
+            'subMerchantKey' => 'smk_001',
+            'subMerchantPrice' => '5.00',
+        ]);
+
+        $this->assertInstanceOf(\Omnipay\Iyzico\Message\Marketplace\SubMerchantPaymentItemUpdateRequest::class, $request);
+    }
 }
