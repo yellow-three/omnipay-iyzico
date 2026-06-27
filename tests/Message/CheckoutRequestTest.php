@@ -58,20 +58,18 @@ class CheckoutRequestTest extends TestCase
     {
         $this->expectException(InvalidRequestException::class);
 
+        $this->request->setBasketId('order_123');
         $this->request->getData();
     }
 
-    public function testGetDataGeneratesBasketIdWhenNotSet(): void
+    public function testGetDataThrowsWhenBasketIdMissing(): void
     {
+        $this->expectException(InvalidRequestException::class);
+
         $this->request->setAmount('100.00');
         $this->request->setLocale('TR');
         $this->request->setPaymentGroup('PRODUCT');
-
-        $data = $this->request->getData();
-
-        $this->assertArrayHasKey('basketId', $data);
-        $this->assertStringStartsWith('basket_', $data['basketId']);
-        $this->assertNotEmpty($data['basketId']);
+        $this->request->getData();
     }
 
     public function testGetDataBasketIdCanBeSet(): void
@@ -91,6 +89,7 @@ class CheckoutRequestTest extends TestCase
         $this->request->setAmount('100.00');
         $this->request->setLocale('TR');
         $this->request->setPaymentGroup('PRODUCT');
+        $this->request->setBasketId('order_123');
 
         $data = $this->request->getData();
 
@@ -102,6 +101,7 @@ class CheckoutRequestTest extends TestCase
         $this->request->setAmount('100.00');
         $this->request->setLocale('TR');
         $this->request->setPaymentGroup('PRODUCT');
+        $this->request->setBasketId('order_123');
         $this->request->setEnabledInstallments([3, 6]);
 
         $data = $this->request->getData();
@@ -114,6 +114,7 @@ class CheckoutRequestTest extends TestCase
         $this->request->setAmount('100.00');
         $this->request->setLocale('TR');
         $this->request->setPaymentGroup('PRODUCT');
+        $this->request->setBasketId('order_123');
 
         $data = $this->request->getData();
 

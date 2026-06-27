@@ -53,9 +53,8 @@ class PlusInstallmentPaymentRequest extends AbstractRequest
         $request->setBasketItems($this->buildBasketItems());
 
         $result = PlusInstallmentPayment::create($request, $options);
-        $rawResult = $result->getRawResult();
 
-        $response = new Response($this, $rawResult);
+        $response = new Response($this, $result);
         $response->applySignature($this->getSecretKey(), 'non-3ds');
 
         return $response;

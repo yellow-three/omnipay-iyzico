@@ -26,7 +26,10 @@ class ApmRetrieveRequest extends AbstractRequest
 
         $result = Apm::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'apm');
+
+        return $response;
     }
 
     public function getPaymentId(): string

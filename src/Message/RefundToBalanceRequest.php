@@ -31,7 +31,6 @@ class RefundToBalanceRequest extends AbstractRequest
         $result = \Iyzipay\Model\RefundToBalance::create($request, $options);
 
         $response = new Response($this, $result);
-        $response->applySignature($this->getSecretKey(), 'refund');
 
         return $response;
     }

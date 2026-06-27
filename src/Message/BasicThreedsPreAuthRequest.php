@@ -15,6 +15,7 @@ class BasicThreedsPreAuthRequest extends AbstractRequest
         return [
             'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
+            'basketId' => $this->getParameter('basketId') ?: uniqid('basket_', true),
             'price' => $this->getAmount(),
             'paidPrice' => $this->getAmount(),
             'currency' => $this->getCurrency(),

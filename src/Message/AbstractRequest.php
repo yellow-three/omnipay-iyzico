@@ -103,6 +103,16 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('identityNumber', $value);
     }
 
+    public function getBuyerId(): ?string
+    {
+        return $this->getParameter('buyerId');
+    }
+
+    public function setBuyerId(string $value): static
+    {
+        return $this->setParameter('buyerId', $value);
+    }
+
     public function getSecure3d(): bool
     {
         return (bool) $this->getParameter('secure3d');
@@ -221,8 +231,13 @@ abstract class AbstractRequest extends BaseAbstractRequest
 
     protected function buildBuyer(CreditCard $card): \Iyzipay\Model\Buyer
     {
+        $identityNumber = $this->getIdentityNumber();
+        if ($identityNumber === null || $identityNumber === '') {
+            throw new InvalidRequestException('The identityNumber parameter is required for buyer');
+        }
+
         $buyer = new \Iyzipay\Model\Buyer();
-        $buyer->setId($this->getConversationId());
+        $buyer->setId($this->getBuyerId() ?: $this->getConversationId());
         $buyer->setName($card->getFirstName());
         $buyer->setSurname($card->getLastName());
         $buyer->setGsmNumber($card->getPhone());

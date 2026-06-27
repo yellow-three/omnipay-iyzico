@@ -8,7 +8,7 @@ class CheckoutRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('amount');
+        $this->validate('amount', 'basketId');
 
         $card = $this->getCard();
 
@@ -18,7 +18,7 @@ class CheckoutRequest extends AbstractRequest
             'price' => $this->getAmount(),
             'paidPrice' => $this->getAmount(),
             'currency' => $this->getCurrency(),
-            'basketId' => $this->getParameter('basketId') ?: uniqid('basket_', true),
+            'basketId' => $this->getParameter('basketId'),
             'paymentGroup' => $this->getPaymentGroup(),
             'callbackUrl' => $this->getReturnUrl(),
             'card' => $card,

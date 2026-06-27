@@ -44,6 +44,23 @@ class Response extends AbstractResponse implements RedirectResponseInterface
         }
 
         if (is_object($data)) {
+            if (method_exists($data, 'getRawResult')) {
+                $raw = $data->getRawResult();
+                if (is_string($raw) && $raw !== '') {
+                    $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    if (isset($decoded['threeDSHtmlContent']) && !isset($decoded['htmlContent'])) {
+                        $decoded['htmlContent'] = base64_decode($decoded['threeDSHtmlContent']);
+                        $decoded['_html_decoded'] = true;
+                    } elseif (isset($decoded['htmlContent']) && !isset($decoded['_html_decoded'])) {
+                        $decoded['htmlContent'] = base64_decode($decoded['htmlContent']);
+                        $decoded['_html_decoded'] = true;
+                    }
+                    return $decoded;
+                }
+                }
+            }
+
             $result = [];
 
             foreach (self::IYZICO_FIELDS as $field) {
@@ -236,9 +253,11 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             'refund-v2' => ['paymentId', 'price', 'currency', 'conversationId'],
             // BKM endpoints
             'bkm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'basic-bkm-init' => ['paymentId', 'currency', 'conversationId', 'paidPrice', 'price'],
             'bkm-retrieve' => ['paymentId', 'conversationId', 'paymentStatus'],
             // APM endpoints
             'apm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'apm' => ['paymentId', 'currency', 'conversationId', 'price'],
             // Marketplace endpoints (no signature in response)
             'marketplace-create-sub-merchant' => [],
             'marketplace-update-sub-merchant' => [],

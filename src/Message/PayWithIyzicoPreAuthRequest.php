@@ -20,7 +20,7 @@ class PayWithIyzicoPreAuthRequest extends AbstractRequest
             'paidPrice' => $this->getAmount(),
             'currency' => $this->getCurrency(),
             'basketId' => $this->getParameter('basketId') ?: uniqid('basket_', true),
-            'paymentGroup' => 'LISTING',
+            'paymentGroup' => $this->getPaymentGroup(),
             'paymentSource' => $this->getParameter('paymentSource'),
             'callbackUrl' => $this->getReturnUrl(),
             'card' => $card,

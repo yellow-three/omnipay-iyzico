@@ -8,7 +8,7 @@ class CaptureRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('paymentId');
+        $this->validate('paymentId', 'amount');
 
         return [
             'paymentId' => $this->getPaymentId(),

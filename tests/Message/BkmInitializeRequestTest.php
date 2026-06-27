@@ -121,9 +121,9 @@ class BkmInitializeRequestTest extends TestCase
         $this->assertStringStartsWith('txn_', $data['conversationId']);
     }
 
-    public function testSendDataReturnsRedirectResponseWithPaymentPageUrl(): void
+    public function testSendDataReturnsRedirectResponseWithHtmlContent(): void
     {
-        $paymentPageUrl = 'https://sandbox-api.iyzipay.com/payment/bkm/initialize/123456';
+        $htmlContent = '<html><body><form id="bkm-form" method="POST">...</form></body></html>';
 
         $this->request->setAmount('100.00');
         $this->request->setCurrency('TRY');
@@ -140,14 +140,14 @@ class BkmInitializeRequestTest extends TestCase
         $data = $this->request->getData();
 
         $httpClient = $this->createMock(HttpClient::class);
-$httpClient->expects($this->once())
+        $httpClient->expects($this->once())
              ->method('post')
              ->willReturn(json_encode([
                  'status' => 'success',
                  'locale' => 'TR',
                  'systemTime' => '1458545234852',
                  'conversationId' => 'conv_123',
-                 'htmlContent' => base64_encode($paymentPageUrl),
+                 'htmlContent' => base64_encode($htmlContent),
                  'token' => 'token_123',
                  'tokenExpireTime' => '2030-12-31 23:59:59',
              ]));
@@ -159,7 +159,7 @@ $httpClient->expects($this->once())
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertTrue($response->isSuccessful());
         $this->assertTrue($response->isRedirect());
-        $this->assertSame($paymentPageUrl, $response->getRedirectUrl());
+        $this->assertSame($htmlContent, $response->getHtmlContent());
         $this->assertSame('POST', $response->getRedirectMethod());
         $this->assertSame('token_123', $response->getToken());
         $this->assertSame('conv_123', $response->getConversationId());

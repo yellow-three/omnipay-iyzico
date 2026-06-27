@@ -52,7 +52,6 @@ class BkmInitializeRequest extends AbstractRequest
         $result = BkmInitialize::create($request, $options);
 
         $response = new RedirectResponse($this, $result);
-        $response->setRedirectUrl($result->getHtmlContent() ?? '');
         $response->setRedirectMethod('POST');
         $response->applySignature($this->getSecretKey(), 'bkm-init');
 

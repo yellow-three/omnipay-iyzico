@@ -390,4 +390,37 @@ class ResponseTest extends TestCase
         );
         $this->assertNull(Response::getSignatureFieldOrder('nonexistent'));
     }
+
+    public function testNormalizeDataWithRawResultIncludesNonWhitelistedFields(): void
+    {
+        $rawJson = json_encode([
+            'status' => 'success',
+            'paymentId' => 'pay_123',
+            'conversationId' => 'conv_123',
+            'subMerchantKey' => 'sub_merchant_abc',
+            'referenceCode' => 'ref_456',
+            'url' => 'https://example.com/link',
+            'redirectUrl' => 'https://example.com/redirect',
+        ]);
+
+        $mock = new class($rawJson) {
+            private string $rawResult;
+            public function __construct(string $rawResult) { $this->rawResult = $rawResult; }
+            public function getRawResult(): string { return $this->rawResult; }
+        };
+
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            $mock
+        );
+
+        $data = $response->getData();
+
+        $this->assertSame('success', $data['status']);
+        $this->assertSame('pay_123', $data['paymentId']);
+        $this->assertSame('sub_merchant_abc', $data['subMerchantKey']);
+        $this->assertSame('ref_456', $data['referenceCode']);
+        $this->assertSame('https://example.com/link', $data['url']);
+        $this->assertSame('https://example.com/redirect', $data['redirectUrl']);
+    }
 }

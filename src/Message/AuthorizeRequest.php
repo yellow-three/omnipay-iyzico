@@ -15,6 +15,7 @@ class AuthorizeRequest extends AbstractRequest
         return [
             'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
+            'basketId' => $this->getParameter('basketId') ?: uniqid('basket_', true),
             'price' => $this->getAmount(),
             'paidPrice' => $this->getAmount(),
             'currency' => $this->getCurrency(),
@@ -36,6 +37,7 @@ class AuthorizeRequest extends AbstractRequest
         $request = new \Iyzipay\Request\CreatePaymentRequest();
         $request->setLocale($this->mapLocale($data['locale']));
         $request->setConversationId($data['conversationId']);
+        $request->setBasketId($data['basketId']);
         $request->setPrice($data['price']);
         $request->setPaidPrice($data['paidPrice']);
         $request->setCurrency($this->mapCurrency($data['currency']));

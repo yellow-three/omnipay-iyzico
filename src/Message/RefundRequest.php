@@ -18,6 +18,7 @@ class RefundRequest extends AbstractRequest
             'price' => $this->getAmount(),
             'currency' => $this->getCurrency(),
             'reason' => $this->getParameter('reason') ?? RefundReason::BUYER_REQUEST,
+            'clientIp' => $this->getClientIp(),
         ];
     }
 
@@ -32,6 +33,7 @@ class RefundRequest extends AbstractRequest
         $request->setPrice($data['price']);
         $request->setCurrency($this->mapCurrency($data['currency']));
         $request->setReason($data['reason']);
+        $request->setIp($data['clientIp'] ?? '127.0.0.1');
 
         $result = Refund::create($request, $options);
 

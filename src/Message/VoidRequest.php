@@ -15,6 +15,7 @@ class VoidRequest extends AbstractRequest
             'conversationId' => $this->getConversationId(),
             'paymentId' => $this->getPaymentId(),
             'reason' => $this->getParameter('reason') ?? 'buyer request',
+            'clientIp' => $this->getClientIp(),
         ];
     }
 
@@ -27,6 +28,7 @@ class VoidRequest extends AbstractRequest
         $request->setConversationId($data['conversationId']);
         $request->setPaymentId($data['paymentId']);
         $request->setReason($data['reason']);
+        $request->setIp($data['clientIp'] ?? '127.0.0.1');
 
         $result = Cancel::create($request, $options);
 
