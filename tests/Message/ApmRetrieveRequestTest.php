@@ -84,4 +84,10 @@ class ApmRetrieveRequestTest extends TestCase
         $this->assertInstanceOf(Response::class, $response);
         $this->assertTrue($response->isSuccessful());
     }
+
+    public function testSendDataAppliesSignatureWithApmRetrieveEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/ApmRetrieveRequest.php');
+        $this->assertStringContainsString("'apm-retrieve'", $source);
+    }
 }

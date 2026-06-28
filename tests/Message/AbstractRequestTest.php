@@ -80,9 +80,9 @@ class TestAbstractRequest extends AbstractRequest
         return $this->buildBillingAddress($card);
     }
 
-    public function publicBuildPaymentCard(CreditCard $card): \Iyzipay\Model\PaymentCard
+    public function publicBuildPaymentCard(CreditCard $card, bool $registerCard = false): \Iyzipay\Model\PaymentCard
     {
-        return $this->buildPaymentCard($card);
+        return $this->buildPaymentCard($card, $registerCard);
     }
 
     public function publicBuildBasketItems(): array
@@ -421,6 +421,78 @@ class AbstractRequestTest extends TestCase
         $this->assertSame('Genel', $basketItems[0]->getCategory1());
     }
 
+    public function testBuildPaymentCardWithRegisterCardTrue(): void
+    {
+        $card = $this->createTestCreditCard();
+
+        $paymentCard = $this->request->publicBuildPaymentCard($card, true);
+
+        $this->assertInstanceOf(\Iyzipay\Model\PaymentCard::class, $paymentCard);
+        $this->assertSame(1, $paymentCard->getRegisterCard());
+    }
+
+    public function testBuildPaymentCardWithoutRegisterCardDefaultsToZero(): void
+    {
+        $card = $this->createTestCreditCard();
+
+        $paymentCard = $this->request->publicBuildPaymentCard($card);
+
+        $this->assertInstanceOf(\Iyzipay\Model\PaymentCard::class, $paymentCard);
+        $this->assertSame(0, $paymentCard->getRegisterCard());
+    }
+
+    public function testBuildBasketItemsWithThreeItemsReturnsCorrectIds(): void
+    {
+        $item1 = new Item(['name' => 'item-1', 'description' => 'Desc 1', 'price' => '10.00']);
+        $item2 = new Item(['name' => 'item-2', 'description' => 'Desc 2', 'price' => '20.00']);
+        $item3 = new Item(['name' => 'item-3', 'description' => 'Desc 3', 'price' => '30.00']);
+        $this->request->setItems([$item1, $item2, $item3]);
+
+        $basketItems = $this->request->publicBuildBasketItems();
+
+        $this->assertCount(3, $basketItems);
+        $this->assertSame('item-1', $basketItems[0]->getId());
+        $this->assertSame('item-2', $basketItems[1]->getId());
+        $this->assertSame('item-3', $basketItems[2]->getId());
+    }
+
+    public function testBuildBasketItemsSetsCategory2WithItemDescription(): void
+    {
+        $item = new Item(['name' => 'Widget', 'description' => 'A widget description', 'price' => '25.00']);
+        $this->request->setItems([$item]);
+
+        $basketItems = $this->request->publicBuildBasketItems();
+
+        $this->assertCount(1, $basketItems);
+        $this->assertSame('A widget description', $basketItems[0]->getCategory2());
+    }
+
+    public function testBuildBasketItemsRespectsItemType(): void
+    {
+        $item = $this->createItemWithType(\Iyzipay\Model\BasketItemType::VIRTUAL);
+        $this->request->setItems([$item]);
+
+        $basketItems = $this->request->publicBuildBasketItems();
+
+        $this->assertCount(1, $basketItems);
+        $this->assertSame(\Iyzipay\Model\BasketItemType::VIRTUAL, $basketItems[0]->getItemType());
+    }
+
+    public function testBuildBasketItemsDefaultsToPhysicalWhenNoType(): void
+    {
+        $item = new Item([
+            'name' => 'Physical Item',
+            'description' => 'Physical goods',
+            'price' => '30.00',
+        ]);
+        $this->request->setItems([$item]);
+
+        $basketItems = $this->request->publicBuildBasketItems();
+
+        $this->assertCount(1, $basketItems);
+        $this->assertSame(\Iyzipay\Model\BasketItemType::PHYSICAL, $basketItems[0]->getItemType());
+    }
+
     // ─── createIyzicoOptions Tests ──────────────────────────────────────────
 
     public function testCreateIyzicoOptions(): void
@@ -449,5 +521,23 @@ class AbstractRequestTest extends TestCase
         $this->assertSame('', $options->getApiKey());
         $this->assertSame('', $options->getSecretKey());
         $this->assertSame('', $options->getBaseUrl());
+    }
+
+    private function createItemWithType(string $type): Item
+    {
+        return new class ($type) extends Item {
+            private string $itemType;
+
+            public function __construct(string $itemType, ?array $parameters = null)
+            {
+                $this->itemType = $itemType;
+                parent::__construct($parameters);
+            }
+
+            public function getType(): string
+            {
+                return $this->itemType;
+            }
+        };
     }
 }

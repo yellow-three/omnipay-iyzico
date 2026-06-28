@@ -180,4 +180,74 @@ class PurchaseRequestTest extends TestCase
         $this->assertSame($htmlContent, $response->getHtmlContent());
         $this->assertSame('pay_3ds_123', $response->getPaymentId());
     }
+
+    public function testGetDataIncludesPosOrderIdWhenSet(): void
+    {
+        $card = $this->createValidCard();
+        $this->request->initialize([
+            'card' => $card,
+            'amount' => '100.00',
+            'currency' => 'TRY',
+            'locale' => 'TR',
+            'paymentChannel' => 'WEB',
+            'paymentGroup' => 'PRODUCT',
+            'posOrderId' => 'pos_order_123',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('pos_order_123', $data['posOrderId']);
+    }
+
+    public function testGetDataPosOrderIdDefaultsToEmptyString(): void
+    {
+        $card = $this->createValidCard();
+        $this->request->initialize([
+            'card' => $card,
+            'amount' => '100.00',
+            'currency' => 'TRY',
+            'locale' => 'TR',
+            'paymentChannel' => 'WEB',
+            'paymentGroup' => 'PRODUCT',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('', $data['posOrderId']);
+    }
+
+    public function testGetDataIncludesPaymentSourceWhenSet(): void
+    {
+        $card = $this->createValidCard();
+        $this->request->initialize([
+            'card' => $card,
+            'amount' => '100.00',
+            'currency' => 'TRY',
+            'locale' => 'TR',
+            'paymentChannel' => 'WEB',
+            'paymentGroup' => 'PRODUCT',
+            'paymentSource' => 'MOBILE',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('MOBILE', $data['paymentSource']);
+    }
+
+    public function testGetDataPaymentSourceDefaultsToEmptyString(): void
+    {
+        $card = $this->createValidCard();
+        $this->request->initialize([
+            'card' => $card,
+            'amount' => '100.00',
+            'currency' => 'TRY',
+            'locale' => 'TR',
+            'paymentChannel' => 'WEB',
+            'paymentGroup' => 'PRODUCT',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('', $data['paymentSource']);
+    }
 }

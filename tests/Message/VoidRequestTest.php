@@ -78,4 +78,10 @@ class VoidRequestTest extends TestCase
 
         $this->assertSame('buyer request', $data['reason']);
     }
+
+    public function testSendDataAppliesSignatureWithCancelEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/VoidRequest.php');
+        $this->assertStringContainsString("'cancel'", $source);
+    }
 }

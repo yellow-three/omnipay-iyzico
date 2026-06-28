@@ -423,4 +423,124 @@ class ResponseTest extends TestCase
         $this->assertSame('https://example.com/link', $data['url']);
         $this->assertSame('https://example.com/redirect', $data['redirectUrl']);
     }
+
+    // ─── getSignatureFieldOrder endpoint tests ────────────────────────────
+
+    public function testGetSignatureFieldOrderCancelReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['paymentId', 'conversationId', 'status'],
+            Response::getSignatureFieldOrder('cancel')
+        );
+    }
+
+    public function testGetSignatureFieldOrderSettlementToBalanceReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['paymentId', 'conversationId', 'status'],
+            Response::getSignatureFieldOrder('settlement-to-balance')
+        );
+    }
+
+    public function testGetSignatureFieldOrderApmRetrieveReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['paymentId', 'currency', 'conversationId', 'price'],
+            Response::getSignatureFieldOrder('apm-retrieve')
+        );
+    }
+
+    public function testGetSignatureFieldOrderRefundToBalanceReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['paymentId', 'status'],
+            Response::getSignatureFieldOrder('refund-to-balance')
+        );
+    }
+
+    public function testGetSignatureFieldOrderCreateCardReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['cardUserKey', 'cardToken', 'status'],
+            Response::getSignatureFieldOrder('create-card')
+        );
+    }
+
+    public function testGetSignatureFieldOrderDeleteCardReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['cardUserKey', 'cardToken', 'status'],
+            Response::getSignatureFieldOrder('delete-card')
+        );
+    }
+
+    public function testGetSignatureFieldOrderListCardsReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['cardUserKey', 'status'],
+            Response::getSignatureFieldOrder('list-cards')
+        );
+    }
+
+    public function testGetSignatureFieldOrderBinNumberReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['binNumber', 'status'],
+            Response::getSignatureFieldOrder('bin-number')
+        );
+    }
+
+    public function testGetSignatureFieldOrderInstallmentReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['binNumber', 'status'],
+            Response::getSignatureFieldOrder('installment')
+        );
+    }
+
+    public function testGetSignatureFieldOrderLoyaltyReturnsExpectedFields(): void
+    {
+        $this->assertSame(
+            ['cardNumber', 'status'],
+            Response::getSignatureFieldOrder('loyalty')
+        );
+    }
+
+    // ─── IYZICO_FIELDS constant tests ─────────────────────────────────────
+
+    public function testIyzicoFieldsIncludesNewEntries(): void
+    {
+        $reflection = new \ReflectionClass(Response::class);
+        $constants = $reflection->getReflectionConstants();
+
+        foreach ($constants as $constant) {
+            if ($constant->getName() === 'IYZICO_FIELDS') {
+                $fields = $constant->getValue();
+                $this->assertContains('rewardAmount', $fields);
+                $this->assertContains('rewardUsage', $fields);
+                $this->assertContains('commissionRate', $fields);
+                $this->assertContains('commissionRateAmount', $fields);
+                $this->assertContains('phase', $fields);
+                $this->assertContains('posOrderId', $fields);
+                return;
+            }
+        }
+
+        $this->fail('IYZICO_FIELDS constant not found');
+    }
+
+    // ─── isSignatureValid additional tests ─────────────────────────────────
+
+    public function testApplySignatureWithMismatchedSignatureReturnsFalse(): void
+    {
+        $data = [
+            'paymentId' => 'pay_1',
+            'conversationId' => 'conv_1',
+            'signature' => 'wrong_signature_value_that_does_not_match',
+        ];
+        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response->applySignature('test-key', '3ds-init');
+
+        $this->assertFalse($response->isSignatureValid());
+    }
 }

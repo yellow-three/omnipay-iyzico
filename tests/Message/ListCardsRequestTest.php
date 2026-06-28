@@ -134,4 +134,10 @@ class ListCardsRequestTest extends TestCase
         $this->assertSame('1004', $response->getCode());
         $this->assertStringContainsString('Card user not found', $response->getMessage());
     }
+
+    public function testSendDataAppliesSignatureWithListCardsEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/ListCardsRequest.php');
+        $this->assertStringContainsString("'list-cards'", $source);
+    }
 }

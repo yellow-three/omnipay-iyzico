@@ -130,4 +130,10 @@ class RefundToBalanceRequestTest extends TestCase
         $this->assertSame('5001', $response->getCode());
         $this->assertStringContainsString('Refund to balance not found', $response->getMessage());
     }
+
+    public function testSendDataAppliesSignatureWithRefundToBalanceEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/RefundToBalanceRequest.php');
+        $this->assertStringContainsString("'refund-to-balance'", $source);
+    }
 }

@@ -391,7 +391,7 @@ class AuthorizeRequestTest extends TestCase
             ->method('post')
             ->willReturn($errorJson);
 
-        /** @var Response $response */
+        /** @var RedirectResponse $response */
         $response = $this->request->send();
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
@@ -399,5 +399,49 @@ class AuthorizeRequestTest extends TestCase
         $this->assertFalse($response->isRedirect());
         $this->assertNull($response->getHtmlContent());
         $this->assertSame('5001', $response->getCode());
+    }
+
+    // ---------------------------------------------------------------
+    //  posOrderId & paymentSource
+    // ---------------------------------------------------------------
+
+    public function testGetDataIncludesPosOrderIdWhenSet(): void
+    {
+        $this->initializeRequest([
+            'posOrderId' => 'pos_order_456',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('pos_order_456', $data['posOrderId']);
+    }
+
+    public function testGetDataPosOrderIdDefaultsToEmptyString(): void
+    {
+        $this->initializeRequest();
+
+        $data = $this->request->getData();
+
+        $this->assertSame('', $data['posOrderId']);
+    }
+
+    public function testGetDataIncludesPaymentSourceWhenSet(): void
+    {
+        $this->initializeRequest([
+            'paymentSource' => 'WEB',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('WEB', $data['paymentSource']);
+    }
+
+    public function testGetDataPaymentSourceDefaultsToEmptyString(): void
+    {
+        $this->initializeRequest();
+
+        $data = $this->request->getData();
+
+        $this->assertSame('', $data['paymentSource']);
     }
 }

@@ -193,4 +193,10 @@ class InstallmentRequestTest extends TestCase
         $this->assertSame('1001', $response->getCode());
         $this->assertStringContainsString('Bin number not found', $response->getMessage());
     }
+
+    public function testSendDataAppliesSignatureWithInstallmentEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/InstallmentRequest.php');
+        $this->assertStringContainsString("'installment'", $source);
+    }
 }

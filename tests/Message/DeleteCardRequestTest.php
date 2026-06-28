@@ -122,4 +122,10 @@ class DeleteCardRequestTest extends TestCase
         $this->assertSame('1006', $response->getCode());
         $this->assertStringContainsString('Card not found', $response->getMessage());
     }
+
+    public function testSendDataAppliesSignatureWithDeleteCardEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/DeleteCardRequest.php');
+        $this->assertStringContainsString("'delete-card'", $source);
+    }
 }

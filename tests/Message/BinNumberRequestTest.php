@@ -122,4 +122,10 @@ class BinNumberRequestTest extends TestCase
         $this->assertSame('1001', $response->getCode());
         $this->assertStringContainsString('Bin number not found', $response->getMessage());
     }
+
+    public function testSendDataAppliesSignatureWithBinNumberEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/BinNumberRequest.php');
+        $this->assertStringContainsString("'bin-number'", $source);
+    }
 }

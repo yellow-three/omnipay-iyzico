@@ -200,4 +200,49 @@ class AcceptNotificationRequestTest extends TestCase
 
         $this->assertSame($this->request, $result);
     }
+
+    public function testInitOrderingDataAvailableAfterParentInitialize(): void
+    {
+        $this->request->initialize([
+            'paymentId' => 'pay_init_123',
+            'iyziEventType' => 'DIRECT',
+            'paymentConversationId' => 'conv_init_123',
+            'status' => 'SUCCESS',
+            'customField' => 'custom_value',
+        ]);
+
+        // Data should be available immediately after initialize().
+        // Fields with setters on AbstractRequest (paymentId, conversationId)
+        // go to the ParameterBag; only notification-specific fields land in $this->data.
+        $data = $this->request->getData();
+
+        $this->assertSame('DIRECT', $data['iyziEventType']);
+        $this->assertSame('SUCCESS', $data['status']);
+        $this->assertSame('custom_value', $data['customField']);
+    }
+
+    public function testInitNoDataLossOnCustomParams(): void
+    {
+        $this->request->initialize([
+            'paymentId' => 'pay_nodrop',
+            'iyziEventType' => 'HPP',
+            'paymentConversationId' => 'conv_nodrop',
+            'status' => 'FAILURE',
+        ]);
+
+        // Set a new parameter via the notification setter
+        $this->request->setNotificationData([
+            'paymentId' => 'pay_nodrop',
+            'iyziEventType' => 'HPP',
+            'paymentConversationId' => 'conv_nodrop',
+            'status' => 'FAILURE',
+            'extraKey' => 'extraValue',
+        ]);
+
+        $data = $this->request->getData();
+
+        $this->assertSame('pay_nodrop', $data['paymentId']);
+        $this->assertSame('FAILURE', $data['status']);
+        $this->assertSame('extraValue', $data['extraKey']);
+    }
 }

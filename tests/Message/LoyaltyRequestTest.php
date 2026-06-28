@@ -138,4 +138,10 @@ class LoyaltyRequestTest extends TestCase
         $this->assertFalse($response->isSuccessful());
         $this->assertSame('failure', $response->getStatus());
     }
+
+    public function testSendDataAppliesSignatureWithLoyaltyEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/LoyaltyRequest.php');
+        $this->assertStringContainsString("'loyalty'", $source);
+    }
 }

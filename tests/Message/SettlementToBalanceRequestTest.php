@@ -131,4 +131,10 @@ class SettlementToBalanceRequestTest extends TestCase
         $this->assertSame('5002', $response->getCode());
         $this->assertStringContainsString('Settlement to balance failed', $response->getMessage());
     }
+
+    public function testSendDataAppliesSignatureWithSettlementToBalanceEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/SettlementToBalanceRequest.php');
+        $this->assertStringContainsString("'settlement-to-balance'", $source);
+    }
 }

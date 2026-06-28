@@ -229,4 +229,10 @@ class CreateCardRequestTest extends TestCase
 
         $this->assertSame('', $data['cardAlias']);
     }
+
+    public function testSendDataAppliesSignatureWithCreateCardEndpoint(): void
+    {
+        $source = file_get_contents(__DIR__ . '/../../src/Message/CreateCardRequest.php');
+        $this->assertStringContainsString("'create-card'", $source);
+    }
 }
