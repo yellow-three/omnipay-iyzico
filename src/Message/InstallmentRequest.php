@@ -38,6 +38,9 @@ class InstallmentRequest extends AbstractRequest
 
         $result = InstallmentInfo::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'installment');
+
+        return $response;
     }
 }

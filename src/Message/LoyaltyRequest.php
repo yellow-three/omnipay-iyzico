@@ -32,6 +32,9 @@ class LoyaltyRequest extends AbstractRequest
 
         $result = Loyalty::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'loyalty');
+
+        return $response;
     }
 }

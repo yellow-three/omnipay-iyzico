@@ -33,6 +33,7 @@ class SettlementToBalanceRequest extends AbstractRequest
         $result = \Iyzipay\Model\SettlementToBalance::create($request, $options);
 
         $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'settlement-to-balance');
 
         return $response;
     }

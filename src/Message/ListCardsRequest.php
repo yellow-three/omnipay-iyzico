@@ -28,6 +28,9 @@ class ListCardsRequest extends AbstractRequest
 
         $result = CardList::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'list-cards');
+
+        return $response;
     }
 }

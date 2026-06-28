@@ -30,6 +30,9 @@ class DeleteCardRequest extends AbstractRequest
 
         $result = Card::delete($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'delete-card');
+
+        return $response;
     }
 }

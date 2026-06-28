@@ -44,7 +44,10 @@ class CreateCardRequest extends AbstractRequest
 
         $result = Card::create($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'create-card');
+
+        return $response;
     }
 
     public function getExternalId(): string

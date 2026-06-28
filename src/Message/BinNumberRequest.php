@@ -28,6 +28,9 @@ class BinNumberRequest extends AbstractRequest
 
         $result = BinNumber::retrieve($request, $options);
 
-        return new Response($this, $result);
+        $response = new Response($this, $result);
+        $response->applySignature($this->getSecretKey(), 'bin-number');
+
+        return $response;
     }
 }
