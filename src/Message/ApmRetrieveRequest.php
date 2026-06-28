@@ -27,7 +27,7 @@ class ApmRetrieveRequest extends AbstractRequest
         $result = Apm::retrieve($request, $options);
 
         $response = new Response($this, $result);
-        $response->applySignature($this->getSecretKey(), 'apm');
+        $response->applySignature($this->getSecretKey(), 'apm-retrieve');
 
         return $response;
     }

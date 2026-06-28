@@ -33,7 +33,7 @@ class VoidRequest extends AbstractRequest
         $result = Cancel::create($request, $options);
 
         $response = new Response($this, $result);
-        $response->applySignature($this->getSecretKey(), 'refund');
+        $response->applySignature($this->getSecretKey(), 'cancel');
 
         return $response;
     }
