@@ -26,6 +26,8 @@ class AuthorizeRequest extends AbstractRequest
             'secure3d' => $this->getSecure3d(),
             'card' => $this->getCard(),
             'clientIp' => $this->getClientIp(),
+            'posOrderId' => $this->getParameter('posOrderId') ?: '',
+            'paymentSource' => $this->getParameter('paymentSource') ?: '',
         ];
     }
 
@@ -44,6 +46,14 @@ class AuthorizeRequest extends AbstractRequest
         $request->setInstallment($data['installment']);
         $request->setPaymentChannel($this->mapPaymentChannel($data['paymentChannel']));
         $request->setPaymentGroup($this->mapPaymentGroup($data['paymentGroup']));
+
+        if (!empty($data['posOrderId'])) {
+            $request->setPosOrderId($data['posOrderId']);
+        }
+
+        if (!empty($data['paymentSource'])) {
+            $request->setPaymentSource($data['paymentSource']);
+        }
 
         if ($data['secure3d'] && !empty($data['callbackUrl'])) {
             $request->setCallbackUrl($data['callbackUrl']);

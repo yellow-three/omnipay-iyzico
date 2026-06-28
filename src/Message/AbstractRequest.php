@@ -173,6 +173,26 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('email', $value);
     }
 
+    public function getPosOrderId(): ?string
+    {
+        return $this->getParameter('posOrderId');
+    }
+
+    public function setPosOrderId(string $value): static
+    {
+        return $this->setParameter('posOrderId', $value);
+    }
+
+    public function getPaymentSource(): ?string
+    {
+        return $this->getParameter('paymentSource');
+    }
+
+    public function setPaymentSource(string $value): static
+    {
+        return $this->setParameter('paymentSource', $value);
+    }
+
     protected function generateConversationId(): string
     {
         return uniqid('txn_', true);
@@ -278,7 +298,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $address;
     }
 
-    protected function buildPaymentCard(CreditCard $card): \Iyzipay\Model\PaymentCard
+    protected function buildPaymentCard(CreditCard $card, bool $registerCard = false): \Iyzipay\Model\PaymentCard
     {
         $paymentCard = new \Iyzipay\Model\PaymentCard();
         $paymentCard->setCardHolderName($card->getName());
@@ -286,7 +306,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         $paymentCard->setExpireMonth($card->getExpiryMonth());
         $paymentCard->setExpireYear($card->getExpiryYear());
         $paymentCard->setCvc($card->getCvv());
-        $paymentCard->setRegisterCard(0);
+        $paymentCard->setRegisterCard($registerCard ? 1 : 0);
 
         return $paymentCard;
     }
@@ -302,7 +322,9 @@ abstract class AbstractRequest extends BaseAbstractRequest
                 $basketItem->setId($item->getName());
                 $basketItem->setName($item->getName());
                 $basketItem->setCategory1($item->getDescription() ?: 'Genel');
-                $basketItem->setItemType(\Iyzipay\Model\BasketItemType::PHYSICAL);
+                $basketItem->setCategory2($item->getDescription() ?: '');
+                $type = method_exists($item, 'getType') ? $item->getType() : ($item->getParameters()['type'] ?? null);
+                $basketItem->setItemType($type ?: \Iyzipay\Model\BasketItemType::PHYSICAL);
                 $basketItem->setPrice($item->getPrice());
                 $basketItems[] = $basketItem;
             }
@@ -313,6 +335,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
             $basketItem->setId('ITEM001');
             $basketItem->setName($this->getDescription() ?: 'Payment');
             $basketItem->setCategory1('Genel');
+            $basketItem->setCategory2('');
             $basketItem->setItemType(\Iyzipay\Model\BasketItemType::PHYSICAL);
             $basketItem->setPrice($this->getAmount());
             $basketItems[] = $basketItem;

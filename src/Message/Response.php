@@ -25,6 +25,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface
         'bankName', 'bankCode', 'commercial', 'installmentDetails',
         'externalId', 'cardAlias', 'cardBankCode', 'cardBankName', 'cardDetails',
         'payWithIyzicoPageUrl', 'payWithIyzicoContent',
+        'rewardAmount', 'rewardUsage', 'commissionRate', 'commissionRateAmount', 'phase', 'posOrderId',
     ];
 
     public function __construct(RequestInterface $request, mixed $data)
@@ -232,6 +233,15 @@ class Response extends AbstractResponse implements RedirectResponseInterface
     /**
      * Get the ordered field names for signature verification by endpoint key.
      *
+     * IMPORTANT: These field orders are reverse-engineered from iyzico documentation
+     * and community examples. They MAY NOT match actual API response signatures.
+     * No code in this gateway enforces invalid signatures — the result is stored as
+     * a boolean via isSignatureValid() but is never acted upon (never blocks payment
+     * processing or triggers exceptions). Treat these values as best-effort defaults
+     * that may need adjustment based on real-world API responses.
+     *
+     * DO NOT change any field order values without verifying against actual API responses.
+     *
      * @return array|null Ordered field names, or null if the endpoint is unknown
      */
     public static function getSignatureFieldOrder(string $endpoint): ?array
@@ -251,6 +261,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             'checkout-retrieve' => ['paymentStatus', 'paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'token'],
             'refund' => ['paymentId', 'price', 'currency', 'conversationId'],
             'refund-v2' => ['paymentId', 'price', 'currency', 'conversationId'],
+            'cancel' => ['paymentId', 'conversationId', 'status'],
+            'settlement-to-balance' => ['paymentId', 'conversationId', 'status'],
+            'refund-to-balance' => ['paymentId', 'status'],
             // BKM endpoints
             'bkm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
             'basic-bkm-init' => ['paymentId', 'currency', 'conversationId', 'paidPrice', 'price'],
@@ -258,6 +271,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             // APM endpoints
             'apm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
             'apm' => ['paymentId', 'currency', 'conversationId', 'price'],
+            'apm-retrieve' => ['paymentId', 'currency', 'conversationId', 'price'],
             // Marketplace endpoints (no signature in response)
             'marketplace-create-sub-merchant' => [],
             'marketplace-update-sub-merchant' => [],
@@ -269,12 +283,28 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             'marketplace-update-payment-item' => [],
             // iyzico Link endpoints
             'iyzilink-create' => ['paymentId', 'conversationId'],
+            // Card storage endpoints
+            'create-card' => ['cardUserKey', 'cardToken', 'status'],
+            'delete-card' => ['cardUserKey', 'cardToken', 'status'],
+            'list-cards' => ['cardUserKey', 'status'],
+            // Lookup endpoints
+            'bin-number' => ['binNumber', 'status'],
+            'installment' => ['binNumber', 'status'],
+            'loyalty' => ['cardNumber', 'status'],
             // Reporting endpoints (no signature in response)
             'reporting-payment-detail' => [],
             'reporting-payment-transaction' => [],
             'reporting-scroll-transaction' => [],
             // Callback redirect signature verification
             'callback-redirect' => ['conversationData', 'conversationId', 'mdStatus', 'paymentId', 'status'],
+            // Card management endpoints
+            'create-card' => ['cardUserKey', 'cardToken', 'status'],
+            'delete-card' => ['cardUserKey', 'cardToken', 'status'],
+            'list-cards' => ['cardUserKey', 'status'],
+            // Info lookup endpoints
+            'bin-number' => ['binNumber', 'status'],
+            'installment' => ['binNumber', 'status'],
+            'loyalty' => ['cardNumber', 'status'],
         ];
 
         return $map[$endpoint] ?? null;
