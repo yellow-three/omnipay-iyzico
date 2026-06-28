@@ -17,9 +17,10 @@ class AcceptNotificationRequest extends AbstractRequest implements NotificationI
             }
         }
 
+        parent::initialize($parameters);
         $this->data = $notificationData;
 
-        return parent::initialize($parameters);
+        return $this;
     }
 
     public function setNotificationData(array $data): static
