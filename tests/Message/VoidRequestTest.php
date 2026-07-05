@@ -4,6 +4,7 @@ namespace Omnipay\Iyzico\Tests\Message;
 
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Http\ClientInterface;
+use Iyzipay\Model\RefundReason;
 use Omnipay\Iyzico\Message\VoidRequest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request as HttpRequest;
@@ -24,14 +25,14 @@ class VoidRequestTest extends TestCase
         $this->request->setPaymentId('pay_123');
         $this->request->setConversationId('conv_123');
         $this->request->setLocale('TR');
-        $this->request->setReason('buyer request');
+        $this->request->setReason(RefundReason::BUYER_REQUEST);
 
         $data = $this->request->getData();
 
         $this->assertSame('TR', $data['locale']);
         $this->assertSame('conv_123', $data['conversationId']);
         $this->assertSame('pay_123', $data['paymentId']);
-        $this->assertSame('buyer request', $data['reason']);
+        $this->assertSame(RefundReason::BUYER_REQUEST, $data['reason']);
     }
 
     public function testGetDataThrowsWhenPaymentIdMissing(): void
@@ -76,7 +77,7 @@ class VoidRequestTest extends TestCase
 
         $data = $this->request->getData();
 
-        $this->assertSame('buyer request', $data['reason']);
+        $this->assertSame(RefundReason::BUYER_REQUEST, $data['reason']);
     }
 
     public function testSendDataAppliesSignatureWithCancelEndpoint(): void

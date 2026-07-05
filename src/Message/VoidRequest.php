@@ -3,6 +3,7 @@
 namespace Omnipay\Iyzico\Message;
 
 use Iyzipay\Model\Cancel;
+use Iyzipay\Model\RefundReason;
 
 class VoidRequest extends AbstractRequest
 {
@@ -14,7 +15,7 @@ class VoidRequest extends AbstractRequest
             'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
             'paymentId' => $this->getPaymentId(),
-            'reason' => $this->getParameter('reason') ?? 'buyer request',
+            'reason' => $this->getParameter('reason') ?? RefundReason::BUYER_REQUEST,
             'clientIp' => $this->getClientIp(),
         ];
     }

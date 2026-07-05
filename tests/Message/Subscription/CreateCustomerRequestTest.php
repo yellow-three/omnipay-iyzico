@@ -34,8 +34,6 @@ class CreateCustomerRequestTest extends TestCase
         $this->request->setName('John');
         $this->request->setSurname('Doe');
         $this->request->setIdentityNumber('12345678901');
-        $this->request->setContactEmail('contact@example.com');
-        $this->request->setContactGsmNumber('+905559998877');
         $this->request->setBillingAddress('Billing St. No:1');
         $this->request->setBillingCity('Istanbul');
         $this->request->setBillingDistrict('Kadikoy');
@@ -60,8 +58,6 @@ class CreateCustomerRequestTest extends TestCase
         $this->assertSame('John', $data['name']);
         $this->assertSame('Doe', $data['surname']);
         $this->assertSame('12345678901', $data['identityNumber']);
-        $this->assertSame('contact@example.com', $data['contactEmail']);
-        $this->assertSame('+905559998877', $data['contactGsmNumber']);
         $this->assertSame('Billing St. No:1', $data['billingAddress']);
         $this->assertSame('Istanbul', $data['billingCity']);
         $this->assertSame('Kadikoy', $data['billingDistrict']);

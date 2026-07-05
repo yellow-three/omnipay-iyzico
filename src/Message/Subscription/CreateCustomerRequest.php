@@ -19,8 +19,6 @@ class CreateCustomerRequest extends AbstractRequest
             'name' => $this->getName(),
             'surname' => $this->getSurname(),
             'identityNumber' => $this->getIdentityNumber(),
-            'contactEmail' => $this->getContactEmail(),
-            'contactGsmNumber' => $this->getContactGsmNumber(),
             'billingAddress' => $this->getBillingAddress(),
             'billingCity' => $this->getBillingCity(),
             'billingDistrict' => $this->getBillingDistrict(),
@@ -95,26 +93,6 @@ class CreateCustomerRequest extends AbstractRequest
     public function setSurname(string $value): static
     {
         return $this->setParameter('surname', $value);
-    }
-
-    public function getContactEmail(): ?string
-    {
-        return $this->getParameter('contactEmail');
-    }
-
-    public function setContactEmail(string $value): static
-    {
-        return $this->setParameter('contactEmail', $value);
-    }
-
-    public function getContactGsmNumber(): ?string
-    {
-        return $this->getParameter('contactGsmNumber');
-    }
-
-    public function setContactGsmNumber(string $value): static
-    {
-        return $this->setParameter('contactGsmNumber', $value);
     }
 
     public function getBillingAddress(): ?string
