@@ -195,8 +195,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface
         }
 
         $priceFields = $options['priceFields'] ?? ['price', 'paidPrice'];
+        // iyzico signs only the field values joined by ':' — the secret key is the
+        // HMAC key, it is NOT part of the signed message (see iyzipay-php samples).
         $parts = [];
-        $parts[] = $secretKey;
 
         foreach ($fieldNames as $field) {
             $value = $this->data[$field] ?? '';
