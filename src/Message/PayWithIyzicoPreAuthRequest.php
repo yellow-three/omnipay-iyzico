@@ -2,7 +2,7 @@
 
 namespace Omnipay\Iyzico\Message;
 
-use Iyzipay\Model\PayWithIyzicoInitialize;
+use Omnipay\Common\Exception\RuntimeException;
 
 class PayWithIyzicoPreAuthRequest extends AbstractRequest
 {
@@ -28,45 +28,20 @@ class PayWithIyzicoPreAuthRequest extends AbstractRequest
         ];
     }
 
-    public function sendData($data): RedirectResponse
+    /**
+     * iyzico exposes no pre-authorization endpoint for Pay with iyzico (the SDK only has
+     * PayWithIyzicoInitialize, which starts a full sale). This request used to call that
+     * endpoint, silently charging the card when the caller asked for a pre-auth, so it
+     * now refuses to send instead.
+     *
+     * @throws RuntimeException always
+     */
+    public function sendData($data): never
     {
-        $options = $this->createIyzicoOptions();
-        $card = $data['card'];
-
-        $request = new \Iyzipay\Request\CreatePayWithIyzicoInitializeRequest();
-        $request->setLocale($this->mapLocale($data['locale']));
-        $request->setConversationId($data['conversationId']);
-        $request->setPrice($data['price']);
-        $request->setPaidPrice($data['paidPrice']);
-        $request->setCurrency($this->mapCurrency($data['currency']));
-        $request->setBasketId($data['basketId']);
-        $request->setPaymentGroup($this->mapPaymentGroup($data['paymentGroup']));
-        $request->setCallbackUrl($data['callbackUrl']);
-
-        if ($card) {
-            $request->setBuyer($this->buildBuyer($card));
-            $request->setShippingAddress($this->buildShippingAddress($card));
-            $request->setBillingAddress($this->buildBillingAddress($card));
-        }
-
-        $request->setBasketItems($this->buildBasketItems());
-
-        if (!empty($data['paymentSource'])) {
-            $request->setPaymentSource($data['paymentSource']);
-        }
-
-        if (!empty($data['enabledInstallments'])) {
-            $request->setEnabledInstallments($data['enabledInstallments']);
-        }
-
-        $result = PayWithIyzicoInitialize::create($request, $options);
-
-        $response = new RedirectResponse($this, $result);
-        $response->setRedirectUrl($result->getPayWithIyzicoPageUrl() ?? '');
-        $response->setRedirectMethod('GET');
-        $response->applySignature($this->getSecretKey(), 'pwi-init');
-
-        return $response;
+        throw new RuntimeException(
+            'Pay with iyzico does not support pre-authorization. Use payWithIyzico() for a sale, '
+            . 'or checkoutFormPreAuth() / authorize() for a pre-authorization.'
+        );
     }
 
     public function getBasketId(): string

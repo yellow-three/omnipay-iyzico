@@ -339,25 +339,10 @@ if ($response->isRedirect()) {
 
 ### Pay with iyzico PreAuth
 
-Pre-authorization via the Pay with iyzico page:
-
-```php
-$response = $gateway->payWithIyzicoPreAuth([
-    'amount' => '100.00',
-    'currency' => 'TRY',
-    'basketId' => 'order_123',
-    'returnUrl' => 'https://yoursite.com/payment/callback',
-    'card' => $cardData,
-    'buyer' => $buyerData,
-    'shippingAddress' => $shippingData,
-    'billingAddress' => $billingData,
-    'basketItems' => $basketItems,
-])->send();
-
-if ($response->isRedirect()) {
-    $response->redirect();
-}
-```
+> **Not supported.** iyzico has no pre-authorization endpoint for Pay with iyzico.
+> `payWithIyzicoPreAuth()` is deprecated and `send()` throws a `RuntimeException`
+> (earlier versions silently started a full sale). Use `payWithIyzico()` for a sale,
+> or `checkoutFormPreAuth()` / `authorize()` for a pre-authorization.
 
 ### Basic 3D Secure PreAuth
 
