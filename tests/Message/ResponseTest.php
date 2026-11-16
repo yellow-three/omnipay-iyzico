@@ -458,84 +458,100 @@ class ResponseTest extends TestCase
 
     // ─── getSignatureFieldOrder endpoint tests ────────────────────────────
 
-    public function testGetSignatureFieldOrderCancelReturnsExpectedFields(): void
+    /**
+     * Orders mirror the calculateHmacSHA256Signature() calls in iyzipay-php samples.
+     */
+    public function testGetSignatureFieldOrderMatchesSdkSamplesForBkmAndApm(): void
     {
+        $this->assertSame(['token', 'conversationId'], Response::getSignatureFieldOrder('bkm-init'));
         $this->assertSame(
-            ['paymentId', 'conversationId', 'status'],
-            Response::getSignatureFieldOrder('cancel')
+            ['paymentId', 'paymentStatus', 'basketId', 'conversationId', 'currency', 'paidPrice', 'price', 'token'],
+            Response::getSignatureFieldOrder('bkm-retrieve')
         );
-    }
-
-    public function testGetSignatureFieldOrderSettlementToBalanceReturnsExpectedFields(): void
-    {
+        $this->assertSame(['paymentId', 'redirectUrl'], Response::getSignatureFieldOrder('apm-init'));
         $this->assertSame(
-            ['paymentId', 'conversationId', 'status'],
-            Response::getSignatureFieldOrder('settlement-to-balance')
-        );
-    }
-
-    public function testGetSignatureFieldOrderApmRetrieveReturnsExpectedFields(): void
-    {
-        $this->assertSame(
-            ['paymentId', 'currency', 'conversationId', 'price'],
+            ['currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'paymentId', 'redirectUrl'],
             Response::getSignatureFieldOrder('apm-retrieve')
         );
     }
 
-    public function testGetSignatureFieldOrderRefundToBalanceReturnsExpectedFields(): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('unsignedEndpoints')]
+    public function testUnsignedEndpointsAreReportedAsNotVerified(string $endpoint): void
     {
-        $this->assertSame(
-            ['paymentId', 'status'],
-            Response::getSignatureFieldOrder('refund-to-balance')
-        );
+        $this->assertNull(Response::getSignatureFieldOrder($endpoint));
+
+        // iyzico sends no signature here, so "not verified" (null) — not "invalid" (false).
+        $response = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $response->applySignature('test-key', $endpoint);
+
+        $this->assertNull($response->isSignatureValid());
     }
 
-    public function testGetSignatureFieldOrderCreateCardReturnsExpectedFields(): void
+    public static function unsignedEndpoints(): array
     {
-        $this->assertSame(
-            ['cardUserKey', 'cardToken', 'status'],
-            Response::getSignatureFieldOrder('create-card')
-        );
+        return [
+            ['cancel'], ['settlement-to-balance'], ['refund-to-balance'], ['basic-bkm-init'],
+            ['create-card'], ['delete-card'], ['list-cards'],
+            ['bin-number'], ['installment'], ['loyalty'],
+            ['marketplace-approve-payment'], ['reporting-payment-detail'], ['iyzilink-create'],
+        ];
     }
 
-    public function testGetSignatureFieldOrderDeleteCardReturnsExpectedFields(): void
+    public function testApplySignatureValidatesApmInitWithRedirectUrl(): void
     {
-        $this->assertSame(
-            ['cardUserKey', 'cardToken', 'status'],
-            Response::getSignatureFieldOrder('delete-card')
-        );
+        $data = [
+            'paymentId' => 'pay_1',
+            'redirectUrl' => 'https://bank.example/pay',
+            'signature' => hash_hmac('sha256', 'pay_1:https://bank.example/pay', 'test-key'),
+        ];
+        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response->applySignature('test-key', 'apm-init');
+
+        $this->assertTrue($response->isSignatureValid());
     }
 
-    public function testGetSignatureFieldOrderListCardsReturnsExpectedFields(): void
+    // ─── stored card / item transaction accessors ─────────────────────────
+
+    public function testGetCardTokenAndCardUserKey(): void
     {
-        $this->assertSame(
-            ['cardUserKey', 'status'],
-            Response::getSignatureFieldOrder('list-cards')
+        $response = new Response(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success', 'cardToken' => 'tok_1', 'cardUserKey' => 'key_1']
         );
+
+        $this->assertSame('tok_1', $response->getCardToken());
+        $this->assertSame('key_1', $response->getCardUserKey());
     }
 
-    public function testGetSignatureFieldOrderBinNumberReturnsExpectedFields(): void
+    public function testGetCardTokenAndCardUserKeyDefaultToNull(): void
     {
-        $this->assertSame(
-            ['binNumber', 'status'],
-            Response::getSignatureFieldOrder('bin-number')
-        );
+        $response = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+
+        $this->assertNull($response->getCardToken());
+        $this->assertNull($response->getCardUserKey());
     }
 
-    public function testGetSignatureFieldOrderInstallmentReturnsExpectedFields(): void
+    public function testGetPaymentTransactionIdsReadsItemTransactions(): void
     {
-        $this->assertSame(
-            ['binNumber', 'status'],
-            Response::getSignatureFieldOrder('installment')
-        );
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'status' => 'success',
+            'itemTransactions' => [
+                ['itemId' => 'A', 'paymentTransactionId' => '111'],
+                ['itemId' => 'B', 'paymentTransactionId' => 222],
+                ['itemId' => 'C'],
+            ],
+        ]);
+
+        $this->assertCount(3, $response->getItemTransactions());
+        $this->assertSame(['111', '222'], $response->getPaymentTransactionIds());
     }
 
-    public function testGetSignatureFieldOrderLoyaltyReturnsExpectedFields(): void
+    public function testGetPaymentTransactionIdsIsEmptyWithoutItemTransactions(): void
     {
-        $this->assertSame(
-            ['cardNumber', 'status'],
-            Response::getSignatureFieldOrder('loyalty')
-        );
+        $response = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+
+        $this->assertSame([], $response->getItemTransactions());
+        $this->assertSame([], $response->getPaymentTransactionIds());
     }
 
     // ─── IYZICO_FIELDS constant tests ─────────────────────────────────────
