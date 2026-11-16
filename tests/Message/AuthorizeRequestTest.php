@@ -310,7 +310,7 @@ class AuthorizeRequestTest extends TestCase
     //  sendData() – 3DS (ThreedsInitialize)
     // ---------------------------------------------------------------
 
-    public function testSendDataSecure3dCallsThreedsInitialize(): void
+    public function testSendDataSecure3dCallsThreedsInitializePreAuth(): void
     {
         $this->initializeRequest([
             'secure3d' => true,
@@ -326,7 +326,8 @@ class AuthorizeRequestTest extends TestCase
             ->expects($this->once())
             ->method('post')
             ->with(
-                $this->stringContains('/payment/3dsecure/initialize'),
+                // Plain /payment/3dsecure/initialize would start a full sale.
+                $this->stringEndsWith('/payment/3dsecure/initialize/preauth'),
                 $this->anything(),
                 $this->anything()
             )
