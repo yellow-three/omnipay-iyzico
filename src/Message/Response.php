@@ -403,9 +403,9 @@ class Response extends AbstractResponse implements RedirectResponseInterface
     /**
      * Get the ordered field names for signature verification by endpoint key.
      *
-     * Every entry mirrors the calculateHmacSHA256Signature() call in the matching
-     * iyzipay-php sample (vendor/iyzico/iyzipay-php/samples), except "refund", which
-     * follows iyzico's response-signature documentation. Endpoints iyzico does not sign
+     * Payment, 3DS, checkout/PWI, refund and callback orders are the ones documented at
+     * https://docs.iyzico.com/en/advanced/response-signature-validation; BKM and APM
+     * mirror the calculateHmacSHA256Signature() calls in the iyzipay-php samples. Endpoints iyzico does not sign
      * (cancel, card storage, BIN/installment lookup, marketplace, reporting, ...) are
      * deliberately absent: applySignature() then reports null ("not verified") instead
      * of a misleading false.
