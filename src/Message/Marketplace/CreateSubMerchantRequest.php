@@ -61,7 +61,7 @@ class CreateSubMerchantRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubMerchantExternalId(): string
+    public function getSubMerchantExternalId(): ?string
     {
         return $this->getParameter('subMerchantExternalId');
     }
@@ -161,7 +161,7 @@ class CreateSubMerchantRequest extends AbstractRequest
         return $this->setParameter('taxNumber', $value);
     }
 
-    public function getSubMerchantType(): string
+    public function getSubMerchantType(): ?string
     {
         return $this->getParameter('subMerchantType');
     }

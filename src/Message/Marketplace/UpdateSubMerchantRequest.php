@@ -60,7 +60,7 @@ class UpdateSubMerchantRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubMerchantKey(): string
+    public function getSubMerchantKey(): ?string
     {
         return $this->getParameter('subMerchantKey');
     }

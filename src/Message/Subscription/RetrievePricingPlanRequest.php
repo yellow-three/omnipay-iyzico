@@ -32,7 +32,7 @@ class RetrievePricingPlanRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getPricingPlanReferenceCode(): string
+    public function getPricingPlanReferenceCode(): ?string
     {
         return $this->getParameter('pricingPlanReferenceCode');
     }

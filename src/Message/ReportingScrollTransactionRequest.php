@@ -32,7 +32,7 @@ class ReportingScrollTransactionRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getTransactionDate(): string
+    public function getTransactionDate(): ?string
     {
         return $this->getParameter('transactionDate');
     }
@@ -42,7 +42,7 @@ class ReportingScrollTransactionRequest extends AbstractRequest
         return $this->setParameter('transactionDate', $value);
     }
 
-    public function getLastId(): string
+    public function getLastId(): ?string
     {
         return $this->getParameter('lastId') ?: '';
     }
@@ -52,7 +52,7 @@ class ReportingScrollTransactionRequest extends AbstractRequest
         return $this->setParameter('lastId', $value);
     }
 
-    public function getDocumentScrollVoSortingOrder(): string
+    public function getDocumentScrollVoSortingOrder(): ?string
     {
         return $this->getParameter('documentScrollVoSortingOrder') ?: '';
     }

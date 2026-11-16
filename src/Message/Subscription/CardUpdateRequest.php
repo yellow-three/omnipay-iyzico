@@ -34,7 +34,7 @@ class CardUpdateRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getCustomerReferenceCode(): string
+    public function getCustomerReferenceCode(): ?string
     {
         return $this->getParameter('customerReferenceCode');
     }
@@ -44,7 +44,7 @@ class CardUpdateRequest extends AbstractRequest
         return $this->setParameter('customerReferenceCode', $value);
     }
 
-    public function getCallbackUrl(): string
+    public function getCallbackUrl(): ?string
     {
         return $this->getParameter('callbackUrl');
     }

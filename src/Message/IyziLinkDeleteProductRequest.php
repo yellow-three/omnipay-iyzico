@@ -24,7 +24,7 @@ class IyziLinkDeleteProductRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getToken(): string
+    public function getToken(): ?string
     {
         return $this->getParameter('token');
     }

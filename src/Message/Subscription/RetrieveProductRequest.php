@@ -32,7 +32,7 @@ class RetrieveProductRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getProductReferenceCode(): string
+    public function getProductReferenceCode(): ?string
     {
         return $this->getParameter('productReferenceCode');
     }

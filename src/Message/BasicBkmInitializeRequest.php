@@ -49,7 +49,7 @@ class BasicBkmInitializeRequest extends AbstractRequest
         return $response;
     }
 
-    public function getBasketId(): string
+    public function getBasketId(): ?string
     {
         return $this->getParameter('basketId');
     }

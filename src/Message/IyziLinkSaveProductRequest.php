@@ -64,7 +64,7 @@ class IyziLinkSaveProductRequest extends AbstractRequest
         return $response;
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->getParameter('name');
     }
@@ -74,7 +74,7 @@ class IyziLinkSaveProductRequest extends AbstractRequest
         return $this->setParameter('name', $value);
     }
 
-    public function getProductDescription(): string
+    public function getProductDescription(): ?string
     {
         return $this->getParameter('description') ?? '';
     }
@@ -104,7 +104,7 @@ class IyziLinkSaveProductRequest extends AbstractRequest
         return $this->setParameter('price', $value);
     }
 
-    public function getCurrencyCode(): string
+    public function getCurrencyCode(): ?string
     {
         return $this->getParameter('currencyCode');
     }
@@ -144,7 +144,7 @@ class IyziLinkSaveProductRequest extends AbstractRequest
         return $this->setParameter('installmentRequested', $value);
     }
 
-    public function getSourceType(): string
+    public function getSourceType(): ?string
     {
         return $this->getParameter('sourceType') ?: 'WEB';
     }

@@ -32,7 +32,7 @@ class RetrieveSubMerchantRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubMerchantExternalId(): string
+    public function getSubMerchantExternalId(): ?string
     {
         return $this->getParameter('subMerchantExternalId');
     }

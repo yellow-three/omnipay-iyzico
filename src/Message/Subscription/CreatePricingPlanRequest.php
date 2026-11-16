@@ -48,7 +48,7 @@ class CreatePricingPlanRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->getParameter('name');
     }
@@ -58,7 +58,7 @@ class CreatePricingPlanRequest extends AbstractRequest
         return $this->setParameter('name', $value);
     }
 
-    public function getProductReferenceCode(): string
+    public function getProductReferenceCode(): ?string
     {
         return $this->getParameter('productReferenceCode');
     }
@@ -68,7 +68,7 @@ class CreatePricingPlanRequest extends AbstractRequest
         return $this->setParameter('productReferenceCode', $value);
     }
 
-    public function getPrice(): string
+    public function getPrice(): ?string
     {
         return $this->getParameter('price');
     }
@@ -78,7 +78,7 @@ class CreatePricingPlanRequest extends AbstractRequest
         return $this->setParameter('price', $value);
     }
 
-    public function getCurrencyCode(): string
+    public function getCurrencyCode(): ?string
     {
         return $this->getParameter('currencyCode');
     }
@@ -88,7 +88,7 @@ class CreatePricingPlanRequest extends AbstractRequest
         return $this->setParameter('currencyCode', $value);
     }
 
-    public function getPaymentInterval(): string
+    public function getPaymentInterval(): ?string
     {
         return $this->getParameter('paymentInterval');
     }

@@ -32,7 +32,7 @@ class RetrieveCustomerRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getCustomerReferenceCode(): string
+    public function getCustomerReferenceCode(): ?string
     {
         return $this->getParameter('customerReferenceCode');
     }

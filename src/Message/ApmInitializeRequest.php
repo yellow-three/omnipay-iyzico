@@ -76,7 +76,7 @@ class ApmInitializeRequest extends AbstractRequest
         return $this->setParameter('basketId', $value);
     }
 
-    public function getApmType(): string
+    public function getApmType(): ?string
     {
         return $this->getParameter('apmType');
     }
@@ -86,7 +86,7 @@ class ApmInitializeRequest extends AbstractRequest
         return $this->setParameter('apmType', $value);
     }
 
-    public function getMerchantOrderId(): string
+    public function getMerchantOrderId(): ?string
     {
         return $this->getParameter('merchantOrderId');
     }
@@ -96,7 +96,7 @@ class ApmInitializeRequest extends AbstractRequest
         return $this->setParameter('merchantOrderId', $value);
     }
 
-    public function getCountryCode(): string
+    public function getCountryCode(): ?string
     {
         return $this->getParameter('countryCode');
     }

@@ -45,7 +45,7 @@ class CompletePurchaseRequest extends AbstractRequest
         return $response;
     }
 
-    public function getConversationData(): string
+    public function getConversationData(): ?string
     {
         return $this->getParameter('conversationData');
     }

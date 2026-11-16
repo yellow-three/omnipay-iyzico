@@ -56,7 +56,7 @@ class CreateCardRequest extends AbstractRequest
         return $response;
     }
 
-    public function getExternalId(): string
+    public function getExternalId(): ?string
     {
         return $this->getParameter('externalId');
     }
@@ -66,7 +66,7 @@ class CreateCardRequest extends AbstractRequest
         return $this->setParameter('externalId', $value);
     }
 
-    public function getCardAlias(): string
+    public function getCardAlias(): ?string
     {
         return $this->getParameter('cardAlias');
     }

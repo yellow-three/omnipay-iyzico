@@ -43,7 +43,7 @@ class RefundRequest extends AbstractRequest
         return $response;
     }
 
-    public function getPaymentTransactionId(): string
+    public function getPaymentTransactionId(): ?string
     {
         return $this->getParameter('paymentTransactionId');
     }
@@ -53,7 +53,7 @@ class RefundRequest extends AbstractRequest
         return $this->setParameter('paymentTransactionId', $value);
     }
 
-    public function getReason(): string
+    public function getReason(): ?string
     {
         return $this->getParameter('reason');
     }

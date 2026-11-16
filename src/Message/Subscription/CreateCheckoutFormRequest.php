@@ -69,7 +69,7 @@ class CreateCheckoutFormRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getPricingPlanReferenceCode(): string
+    public function getPricingPlanReferenceCode(): ?string
     {
         return $this->getParameter('pricingPlanReferenceCode');
     }
@@ -79,7 +79,7 @@ class CreateCheckoutFormRequest extends AbstractRequest
         return $this->setParameter('pricingPlanReferenceCode', $value);
     }
 
-    public function getCallbackUrl(): string
+    public function getCallbackUrl(): ?string
     {
         return $this->getParameter('callbackUrl');
     }

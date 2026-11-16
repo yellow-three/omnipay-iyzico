@@ -338,6 +338,26 @@ class ResponseTest extends TestCase
         ));
     }
 
+    /**
+     * Sample from docs.iyzico.com/en/advanced/response-signature-validation
+     * (/payment/auth, numeric prices as iyzico returns them).
+     */
+    public function testApplySignatureMatchesIyzicoDocsPaymentSample(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'paymentId' => '22416032',
+            'currency' => 'TRY',
+            'basketId' => 'basketId',
+            'conversationId' => 'conversationId',
+            'paidPrice' => 10.5,
+            'price' => 10.5,
+            'signature' => '836c3a6c8db86c81043f2ca74edb13518b54a813f454f8dd762f0dd658610173',
+        ]);
+        $response->applySignature('sandbox-qaIiLIxhjMgx3LSKIVvp6j17NunHOFtD', 'non-3ds');
+
+        $this->assertTrue($response->isSignatureValid());
+    }
+
     public function testVerifySignatureRejectsSecretKeyPrefixedMessage(): void
     {
         $response = new Response($this->createMock(RequestInterface::class), [

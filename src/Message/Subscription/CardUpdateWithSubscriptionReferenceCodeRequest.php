@@ -34,7 +34,7 @@ class CardUpdateWithSubscriptionReferenceCodeRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubscriptionReferenceCode(): string
+    public function getSubscriptionReferenceCode(): ?string
     {
         return $this->getParameter('subscriptionReferenceCode');
     }
@@ -44,7 +44,7 @@ class CardUpdateWithSubscriptionReferenceCodeRequest extends AbstractRequest
         return $this->setParameter('subscriptionReferenceCode', $value);
     }
 
-    public function getCallbackUrl(): string
+    public function getCallbackUrl(): ?string
     {
         return $this->getParameter('callbackUrl');
     }

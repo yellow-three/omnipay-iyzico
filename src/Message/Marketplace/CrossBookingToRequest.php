@@ -36,7 +36,7 @@ class CrossBookingToRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubMerchantKey(): string
+    public function getSubMerchantKey(): ?string
     {
         return $this->getParameter('subMerchantKey');
     }
@@ -46,7 +46,7 @@ class CrossBookingToRequest extends AbstractRequest
         return $this->setParameter('subMerchantKey', $value);
     }
 
-    public function getPrice(): string
+    public function getPrice(): ?string
     {
         return $this->getParameter('price');
     }
@@ -56,7 +56,7 @@ class CrossBookingToRequest extends AbstractRequest
         return $this->setParameter('price', $value);
     }
 
-    public function getReason(): string
+    public function getReason(): ?string
     {
         return $this->getParameter('reason');
     }
