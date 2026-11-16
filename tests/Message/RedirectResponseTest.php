@@ -18,6 +18,44 @@ class RedirectResponseTest extends TestCase
         $this->assertTrue($response->isRedirect());
     }
 
+    public function testGetRedirectResponseServesHtmlContentWhenThereIsNoUrl(): void
+    {
+        $response = new RedirectResponse(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success', 'htmlContent' => '<form id="3ds">...</form>']
+        );
+
+        $http = $response->getRedirectResponse();
+
+        $this->assertSame('<form id="3ds">...</form>', $http->getContent());
+        $this->assertSame(200, $http->getStatusCode());
+    }
+
+    public function testGetRedirectResponseRedirectsToUrlWhenPresent(): void
+    {
+        $response = new RedirectResponse(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'success', 'checkoutFormContent' => '<script></script>']
+        );
+        $response->setRedirectUrl('https://sandbox-api.iyzipay.com/pay');
+        $response->setRedirectMethod('GET');
+
+        $http = $response->getRedirectResponse();
+
+        $this->assertTrue($http->isRedirect('https://sandbox-api.iyzipay.com/pay'));
+    }
+
+    public function testGetRedirectResponseThrowsWhenNotARedirect(): void
+    {
+        $response = new RedirectResponse(
+            $this->createMock(RequestInterface::class),
+            ['status' => 'failure', 'htmlContent' => '<form></form>']
+        );
+
+        $this->expectException(\Omnipay\Common\Exception\RuntimeException::class);
+        $response->getRedirectResponse();
+    }
+
     public function testIsRedirectWithRedirectUrl(): void
     {
         $response = new RedirectResponse(

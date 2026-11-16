@@ -259,7 +259,7 @@ class ResponseTest extends TestCase
             'paymentId' => 'pay_123',
             'currency' => 'TRY',
             'conversationId' => 'conv_123',
-            'signature' => '80a72cfe1a88ca9e393a51b0b66aa3b2379b8f3767c1f0e667c777f6928f4295',
+            'signature' => hash_hmac('sha256', 'pay_123:TRY:conv_123', 'test-key'),
         ];
         $response = new Response($this->createMock(RequestInterface::class), $data);
 
@@ -297,9 +297,9 @@ class ResponseTest extends TestCase
 
     public function testVerifySignatureWithPriceNormalization(): void
     {
-        // Compute expected: secretKey="sekret", paidPrice="100.50", price="100.50"
-        // Message: "sekret:pay_1:TRY:basket_1:conv_1:100.5:100.5"
-        $expected = hash_hmac('sha256', 'sekret:pay_1:TRY:basket_1:conv_1:100.5:100.5', 'sekret');
+        // paidPrice="100.50", price="100.50" are normalized to "100.5"; the secret key
+        // is only the HMAC key and must not be part of the signed message.
+        $expected = hash_hmac('sha256', 'pay_1:TRY:basket_1:conv_1:100.5:100.5', 'sekret');
 
         $data = [
             'paymentId' => 'pay_1',
@@ -315,6 +315,38 @@ class ResponseTest extends TestCase
         $this->assertTrue(
             $response->verifySignature('sekret', ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'])
         );
+    }
+
+    /**
+     * Official vector from iyzipay-php samples/callbackUrl_Signature_Validation.php.
+     * Guards against re-introducing the secret key into the signed message.
+     */
+    public function testVerifySignatureMatchesOfficialIyzicoSampleVector(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'conversationData' => '',
+            'conversationId' => '',
+            'mdStatus' => '1',
+            'paymentId' => '22484292',
+            'status' => 'success',
+            'signature' => 'a4f73b80bb32a6ef8358090bbd8609a49a7b53f463048f8ef147496e236d04f0',
+        ]);
+
+        $this->assertTrue($response->verifySignature(
+            'jLc7GQHD2pyJoqXDeEcTnGHYtP7Ai5jl',
+            Response::getSignatureFieldOrder('callback-redirect')
+        ));
+    }
+
+    public function testVerifySignatureRejectsSecretKeyPrefixedMessage(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'paymentId' => 'pay_1',
+            'conversationId' => 'conv_1',
+            'signature' => hash_hmac('sha256', 'test-key:pay_1:conv_1', 'test-key'),
+        ]);
+
+        $this->assertFalse($response->verifySignature('test-key', ['paymentId', 'conversationId']));
     }
 
     public function testIsSignatureValidReturnsNullWhenNotSet(): void
@@ -351,7 +383,7 @@ class ResponseTest extends TestCase
 
     public function testApplySignatureValidatesCorrectly(): void
     {
-        $signature = hash_hmac('sha256', 'test-key:pay_1:conv_1', 'test-key');
+        $signature = hash_hmac('sha256', 'pay_1:conv_1', 'test-key');
         $data = [
             'paymentId' => 'pay_1',
             'conversationId' => 'conv_1',

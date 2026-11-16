@@ -229,6 +229,10 @@ class Gateway extends AbstractGateway
         return $this->createRequest(Message\CheckoutFormPreAuthRequest::class, $parameters);
     }
 
+    /**
+     * @deprecated iyzico has no Pay with iyzico pre-auth endpoint; send() throws.
+     *             Use payWithIyzico() (sale) or checkoutFormPreAuth() (pre-auth).
+     */
     public function payWithIyzicoPreAuth(array $parameters = []): Message\PayWithIyzicoPreAuthRequest
     {
         return $this->createRequest(Message\PayWithIyzicoPreAuthRequest::class, $parameters);

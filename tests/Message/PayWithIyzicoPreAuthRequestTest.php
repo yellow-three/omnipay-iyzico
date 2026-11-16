@@ -3,7 +3,7 @@
 namespace Omnipay\Iyzico\Tests\Message;
 
 use Omnipay\Iyzico\Message\PayWithIyzicoPreAuthRequest;
-use Omnipay\Iyzico\Message\RedirectResponse;
+use Omnipay\Common\Exception\RuntimeException;
 use Omnipay\Common\Exception\InvalidRequestException;
 use Omnipay\Common\Http\ClientInterface;
 use Iyzipay\ApiResource;
@@ -108,86 +108,26 @@ class PayWithIyzicoPreAuthRequestTest extends TestCase
         $this->assertStringStartsWith('txn_', $data['conversationId']);
     }
 
-    public function testSendDataReturnsRedirectResponseWithPageUrl(): void
+    public function testSendNeverCallsIyzicoAndThrows(): void
     {
-        $pageUrl = 'https://sandbox-api.iyzipay.com/payment/pay-with-iyzico/initialize/123456';
-
         $this->request->setAmount('100.00');
         $this->request->setCurrency('TRY');
         $this->request->setLocale('TR');
-        $this->request->setConversationId('conv_123');
-        $this->request->setBasketId('order_123');
         $this->request->setPaymentGroup('LISTING');
         $this->request->setReturnUrl('https://example.com/callback');
         $this->request->setApiKey('fake-api-key');
         $this->request->setSecretKey('fake-secret-key');
         $this->request->setBaseUrl('https://sandbox-api.iyzipay.com');
 
-        $data = $this->request->getData();
-
+        // iyzico has no PWI pre-auth endpoint; hitting the sale endpoint would charge the card.
         $httpClient = $this->createMock(HttpClient::class);
-        $httpClient->expects($this->once())
-            ->method('post')
-            ->willReturn(json_encode([
-                'status' => 'success',
-                'locale' => 'TR',
-                'systemTime' => '1458545234852',
-                'conversationId' => 'conv_123',
-                'payWithIyzicoPageUrl' => $pageUrl,
-                'token' => 'pwi_token_123',
-                'tokenExpireTime' => '2030-12-31 23:59:59',
-            ]));
-
+        $httpClient->expects($this->never())->method('post');
         ApiResource::setHttpClient($httpClient);
 
-        $response = $this->request->sendData($data);
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('does not support pre-authorization');
 
-        $this->assertInstanceOf(RedirectResponse::class, $response);
-        $this->assertTrue($response->isSuccessful());
-        $this->assertTrue($response->isRedirect());
-        $this->assertSame($pageUrl, $response->getRedirectUrl());
-        $this->assertSame('GET', $response->getRedirectMethod());
-        $this->assertSame('pwi_token_123', $response->getToken());
-        $this->assertSame('conv_123', $response->getConversationId());
-    }
-
-    public function testSendDataWithFailedResponseReturnsFailedRedirectResponse(): void
-    {
-        $this->request->setAmount('100.00');
-        $this->request->setCurrency('TRY');
-        $this->request->setLocale('TR');
-        $this->request->setConversationId('conv_fail');
-        $this->request->setBasketId('order_fail');
-        $this->request->setPaymentGroup('LISTING');
-        $this->request->setReturnUrl('https://example.com/callback');
-        $this->request->setApiKey('fake-api-key');
-        $this->request->setSecretKey('fake-secret-key');
-        $this->request->setBaseUrl('https://sandbox-api.iyzipay.com');
-
-        $data = $this->request->getData();
-
-        $httpClient = $this->createMock(HttpClient::class);
-        $httpClient->expects($this->once())
-            ->method('post')
-            ->willReturn(json_encode([
-                'status' => 'failure',
-                'errorCode' => '5002',
-                'errorMessage' => 'PayWithIyzico preauth initialization failed',
-                'errorGroup' => 'INIT_FAILURE',
-                'locale' => 'TR',
-                'conversationId' => 'conv_fail',
-            ]));
-
-        ApiResource::setHttpClient($httpClient);
-
-        $response = $this->request->sendData($data);
-
-        $this->assertInstanceOf(RedirectResponse::class, $response);
-        $this->assertFalse($response->isSuccessful());
-        $this->assertFalse($response->isRedirect());
-        $this->assertSame('', $response->getRedirectUrl());
-        $this->assertSame('5002', $response->getCode());
-        $this->assertStringContainsString('PayWithIyzico preauth initialization failed', $response->getMessage());
+        $this->request->send();
     }
 
     public function testSetAndGetBasketId(): void
