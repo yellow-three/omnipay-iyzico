@@ -32,7 +32,7 @@ class RetryRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getReferenceCode(): string
+    public function getReferenceCode(): ?string
     {
         return $this->getParameter('referenceCode');
     }

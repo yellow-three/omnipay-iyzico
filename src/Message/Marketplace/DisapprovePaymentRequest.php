@@ -32,7 +32,7 @@ class DisapprovePaymentRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getPaymentTransactionId(): string
+    public function getPaymentTransactionId(): ?string
     {
         return $this->getParameter('paymentTransactionId');
     }

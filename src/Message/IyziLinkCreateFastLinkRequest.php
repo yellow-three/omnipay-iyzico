@@ -36,7 +36,7 @@ class IyziLinkCreateFastLinkRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->getParameter('description');
     }
@@ -56,7 +56,7 @@ class IyziLinkCreateFastLinkRequest extends AbstractRequest
         return $this->setParameter('price', $value);
     }
 
-    public function getCurrencyCode(): string
+    public function getCurrencyCode(): ?string
     {
         return $this->getParameter('currencyCode');
     }
@@ -66,7 +66,7 @@ class IyziLinkCreateFastLinkRequest extends AbstractRequest
         return $this->setParameter('currencyCode', $value);
     }
 
-    public function getSourceType(): string
+    public function getSourceType(): ?string
     {
         return $this->getParameter('sourceType') ?: 'WEB';
     }

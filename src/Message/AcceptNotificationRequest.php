@@ -88,7 +88,7 @@ class AcceptNotificationRequest extends AbstractRequest implements NotificationI
         return sprintf('Payment status: %s (event: %s)', $data['status'] ?? 'UNKNOWN', $data['iyziEventType'] ?? 'UNKNOWN');
     }
 
-    public function getSignature(): string
+    public function getSignature(): ?string
     {
         return $this->getParameter('signature');
     }

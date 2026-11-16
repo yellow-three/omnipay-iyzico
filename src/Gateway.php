@@ -54,7 +54,7 @@ class Gateway extends AbstractGateway
         return $this;
     }
 
-    public function getApiKey(): string
+    public function getApiKey(): ?string
     {
         return $this->getParameter('apiKey');
     }
@@ -64,7 +64,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('apiKey', $value);
     }
 
-    public function getSecretKey(): string
+    public function getSecretKey(): ?string
     {
         return $this->getParameter('secretKey');
     }
@@ -74,7 +74,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('secretKey', $value);
     }
 
-    public function getBaseUrl(): string
+    public function getBaseUrl(): ?string
     {
         return $this->getParameter('baseUrl');
     }
@@ -84,7 +84,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('baseUrl', $value);
     }
 
-    public function getLocale(): string
+    public function getLocale(): ?string
     {
         return $this->getParameter('locale');
     }
@@ -94,7 +94,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('locale', $value);
     }
 
-    public function getConversationId(): string
+    public function getConversationId(): ?string
     {
         return $this->getParameter('conversationId');
     }
@@ -104,7 +104,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('conversationId', $value);
     }
 
-    public function getPaymentChannel(): string
+    public function getPaymentChannel(): ?string
     {
         return $this->getParameter('paymentChannel');
     }
@@ -114,7 +114,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('paymentChannel', $value);
     }
 
-    public function getPaymentGroup(): string
+    public function getPaymentGroup(): ?string
     {
         return $this->getParameter('paymentGroup');
     }
@@ -124,7 +124,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('paymentGroup', $value);
     }
 
-    public function getInstallment(): int
+    public function getInstallment(): ?int
     {
         return $this->getParameter('installment');
     }
@@ -134,7 +134,7 @@ class Gateway extends AbstractGateway
         return $this->setParameter('installment', $value);
     }
 
-    public function getIdentityNumber(): string
+    public function getIdentityNumber(): ?string
     {
         return $this->getParameter('identityNumber');
     }

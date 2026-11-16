@@ -1032,9 +1032,9 @@ The `Response` object returned by `->send()` provides these methods:
 | `apiKey` | string | `''` | iyzico API key |
 | `secretKey` | string | `''` | iyzico Secret key |
 | `baseUrl` | string | `sandbox-api.iyzipay.com` | API base URL |
-| `testMode` | bool | `false` | Enable sandbox mode |
+| `testMode` | bool | `true` | Sandbox mode (on by default; call `setTestMode(false)` for live) |
 | `locale` | string | `TR` | `TR` or `EN` |
-| `currency` | string | `TRY` | TRY, USD, EUR, GBP, RUB, AZN, KWD, SAR, EGP, JOD, AED, BHD, QAR |
+| `currency` | string | `TRY` | TRY, USD, EUR, GBP, RUB, IRR, NOK, CHF |
 | `secure3d` | bool | `true` | Enable 3D Secure |
 | `installment` | int | `1` | Installment count (1 = peşin/tek çekim. 0 geçersizdir!) |
 | `identityNumber` | string | `''` | Buyer TCKN |
@@ -1042,6 +1042,10 @@ The `Response` object returned by `->send()` provides these methods:
 | `paymentGroup` | string | `PRODUCT` | PRODUCT, LISTING, SUBSCRIPTION |
 | `cardUserKey` | string | `''` | Card storage user key |
 | `cardToken` | string | `''` | Saved card token |
+| `registerCard` | bool | `false` | Store the card used for this payment |
+| `buyerId` | string | conversationId | Your stable ID for the buyer (recommended) |
+| `buyerRegistrationDate` | string | — | Buyer registration date, `Y-m-d H:i:s` (optional) |
+| `buyerLastLoginDate` | string | — | Buyer last login date, `Y-m-d H:i:s` (optional) |
 | `binNumber` | string | `''` | BIN (first 6 digits) for lookup |
 
 ## Sandbox Testing

@@ -60,7 +60,7 @@ class CheckoutFormPreAuthRequest extends AbstractRequest
         return $response;
     }
 
-    public function getBasketId(): string
+    public function getBasketId(): ?string
     {
         return $this->getParameter('basketId');
     }
@@ -70,7 +70,7 @@ class CheckoutFormPreAuthRequest extends AbstractRequest
         return $this->setParameter('basketId', $value);
     }
 
-    public function getEnabledInstallments(): array
+    public function getEnabledInstallments(): ?array
     {
         return $this->getParameter('enabledInstallments') ?? [2, 3, 6, 9];
     }

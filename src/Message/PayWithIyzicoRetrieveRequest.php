@@ -30,7 +30,7 @@ class PayWithIyzicoRetrieveRequest extends AbstractRequest
         return $response;
     }
 
-    public function getToken(): string
+    public function getToken(): ?string
     {
         return $this->getParameter('token');
     }

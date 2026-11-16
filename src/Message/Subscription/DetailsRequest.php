@@ -32,7 +32,7 @@ class DetailsRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubscriptionReferenceCode(): string
+    public function getSubscriptionReferenceCode(): ?string
     {
         return $this->getParameter('subscriptionReferenceCode');
     }

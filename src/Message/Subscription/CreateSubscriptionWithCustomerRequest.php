@@ -36,7 +36,7 @@ class CreateSubscriptionWithCustomerRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getPricingPlanReferenceCode(): string
+    public function getPricingPlanReferenceCode(): ?string
     {
         return $this->getParameter('pricingPlanReferenceCode');
     }
@@ -46,7 +46,7 @@ class CreateSubscriptionWithCustomerRequest extends AbstractRequest
         return $this->setParameter('pricingPlanReferenceCode', $value);
     }
 
-    public function getCustomerReferenceCode(): string
+    public function getCustomerReferenceCode(): ?string
     {
         return $this->getParameter('customerReferenceCode');
     }

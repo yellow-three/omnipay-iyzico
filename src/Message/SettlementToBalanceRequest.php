@@ -38,7 +38,7 @@ class SettlementToBalanceRequest extends AbstractRequest
         return $response;
     }
 
-    public function getSubMerchantKey(): string
+    public function getSubMerchantKey(): ?string
     {
         return $this->getParameter('subMerchantKey');
     }

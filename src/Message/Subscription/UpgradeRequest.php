@@ -40,7 +40,7 @@ class UpgradeRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getSubscriptionReferenceCode(): string
+    public function getSubscriptionReferenceCode(): ?string
     {
         return $this->getParameter('subscriptionReferenceCode');
     }
@@ -50,7 +50,7 @@ class UpgradeRequest extends AbstractRequest
         return $this->setParameter('subscriptionReferenceCode', $value);
     }
 
-    public function getNewPricingPlanReferenceCode(): string
+    public function getNewPricingPlanReferenceCode(): ?string
     {
         return $this->getParameter('newPricingPlanReferenceCode');
     }

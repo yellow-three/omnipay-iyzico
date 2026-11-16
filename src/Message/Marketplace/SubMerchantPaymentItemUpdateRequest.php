@@ -36,7 +36,7 @@ class SubMerchantPaymentItemUpdateRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getPaymentTransactionId(): string
+    public function getPaymentTransactionId(): ?string
     {
         return $this->getParameter('paymentTransactionId');
     }
@@ -46,7 +46,7 @@ class SubMerchantPaymentItemUpdateRequest extends AbstractRequest
         return $this->setParameter('paymentTransactionId', $value);
     }
 
-    public function getSubMerchantKey(): string
+    public function getSubMerchantKey(): ?string
     {
         return $this->getParameter('subMerchantKey');
     }
@@ -56,7 +56,7 @@ class SubMerchantPaymentItemUpdateRequest extends AbstractRequest
         return $this->setParameter('subMerchantKey', $value);
     }
 
-    public function getSubMerchantPrice(): string
+    public function getSubMerchantPrice(): ?string
     {
         return $this->getParameter('subMerchantPrice');
     }

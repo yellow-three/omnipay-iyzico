@@ -33,7 +33,7 @@ class ReportingPaymentDetailRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getPaymentId(): string
+    public function getPaymentId(): ?string
     {
         return $this->getParameter('paymentId') ?? '';
     }
@@ -43,7 +43,7 @@ class ReportingPaymentDetailRequest extends AbstractRequest
         return $this->setParameter('paymentId', $value);
     }
 
-    public function getPaymentConversationId(): string
+    public function getPaymentConversationId(): ?string
     {
         return $this->getParameter('paymentConversationId');
     }

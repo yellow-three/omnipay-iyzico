@@ -33,7 +33,7 @@ class ReportingPaymentTransactionRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getTransactionDate(): string
+    public function getTransactionDate(): ?string
     {
         return $this->getParameter('transactionDate');
     }

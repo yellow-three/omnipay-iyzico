@@ -13,7 +13,7 @@ use Omnipay\Common\Message\AbstractRequest as BaseAbstractRequest;
 
 abstract class AbstractRequest extends BaseAbstractRequest
 {
-    public function getApiKey(): string
+    public function getApiKey(): ?string
     {
         return $this->getParameter('apiKey');
     }
@@ -23,7 +23,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('apiKey', $value);
     }
 
-    public function getSecretKey(): string
+    public function getSecretKey(): ?string
     {
         return $this->getParameter('secretKey');
     }
@@ -33,7 +33,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('secretKey', $value);
     }
 
-    public function getBaseUrl(): string
+    public function getBaseUrl(): ?string
     {
         return $this->getParameter('baseUrl');
     }
@@ -43,7 +43,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('baseUrl', $value);
     }
 
-    public function getLocale(): string
+    public function getLocale(): ?string
     {
         return $this->getParameter('locale');
     }
@@ -53,7 +53,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('locale', $value);
     }
 
-    public function getConversationId(): string
+    public function getConversationId(): ?string
     {
         return $this->getParameter('conversationId') ?: $this->generateConversationId();
     }
@@ -63,7 +63,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('conversationId', $value);
     }
 
-    public function getPaymentChannel(): string
+    public function getPaymentChannel(): ?string
     {
         return $this->getParameter('paymentChannel');
     }
@@ -73,7 +73,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('paymentChannel', $value);
     }
 
-    public function getPaymentGroup(): string
+    public function getPaymentGroup(): ?string
     {
         return $this->getParameter('paymentGroup');
     }
@@ -113,6 +113,32 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('buyerId', $value);
     }
 
+    public function getBuyerRegistrationDate(): ?string
+    {
+        return $this->getParameter('buyerRegistrationDate');
+    }
+
+    /**
+     * When the buyer registered at the merchant, as "Y-m-d H:i:s".
+     */
+    public function setBuyerRegistrationDate(string $value): static
+    {
+        return $this->setParameter('buyerRegistrationDate', $value);
+    }
+
+    public function getBuyerLastLoginDate(): ?string
+    {
+        return $this->getParameter('buyerLastLoginDate');
+    }
+
+    /**
+     * The buyer's last login at the merchant, as "Y-m-d H:i:s".
+     */
+    public function setBuyerLastLoginDate(string $value): static
+    {
+        return $this->setParameter('buyerLastLoginDate', $value);
+    }
+
     public function getSecure3d(): bool
     {
         return (bool) $this->getParameter('secure3d');
@@ -123,7 +149,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('secure3d', $value);
     }
 
-    public function getPaymentId(): string
+    public function getPaymentId(): ?string
     {
         return $this->getParameter('paymentId');
     }
@@ -133,7 +159,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('paymentId', $value);
     }
 
-    public function getBinNumber(): string
+    public function getBinNumber(): ?string
     {
         return $this->getParameter('binNumber');
     }
@@ -199,7 +225,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         }
     }
 
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->getParameter('email');
     }
@@ -299,8 +325,14 @@ abstract class AbstractRequest extends BaseAbstractRequest
         $buyer->setGsmNumber($card->getPhone());
         $buyer->setEmail($card->getEmail());
         $buyer->setIdentityNumber($this->getIdentityNumber());
-        $buyer->setLastLoginDate(date('Y-m-d H:i:s'));
-        $buyer->setRegistrationDate(date('Y-m-d H:i:s'));
+        // Both dates are optional and feed iyzico's fraud scoring. Sending "now" for every
+        // payment made each buyer look like a brand-new account, so only send real values.
+        if (!empty($this->getBuyerLastLoginDate())) {
+            $buyer->setLastLoginDate($this->getBuyerLastLoginDate());
+        }
+        if (!empty($this->getBuyerRegistrationDate())) {
+            $buyer->setRegistrationDate($this->getBuyerRegistrationDate());
+        }
         $buyer->setRegistrationAddress($card->getBillingAddress1());
         $buyer->setIp($this->getClientIp());
         $buyer->setCity($card->getBillingCity());

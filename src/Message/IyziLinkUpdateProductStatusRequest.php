@@ -32,7 +32,7 @@ class IyziLinkUpdateProductStatusRequest extends AbstractRequest
         return new Response($this, $result);
     }
 
-    public function getToken(): string
+    public function getToken(): ?string
     {
         return $this->getParameter('token');
     }
@@ -42,7 +42,7 @@ class IyziLinkUpdateProductStatusRequest extends AbstractRequest
         return $this->setParameter('token', $value);
     }
 
-    public function getProductStatus(): string
+    public function getProductStatus(): ?string
     {
         return $this->getParameter('productStatus');
     }

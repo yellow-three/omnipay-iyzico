@@ -44,7 +44,7 @@ class PayWithIyzicoPreAuthRequest extends AbstractRequest
         );
     }
 
-    public function getBasketId(): string
+    public function getBasketId(): ?string
     {
         return $this->getParameter('basketId');
     }
@@ -54,7 +54,7 @@ class PayWithIyzicoPreAuthRequest extends AbstractRequest
         return $this->setParameter('basketId', $value);
     }
 
-    public function getEnabledInstallments(): array
+    public function getEnabledInstallments(): ?array
     {
         return $this->getParameter('enabledInstallments') ?? [];
     }
@@ -64,7 +64,7 @@ class PayWithIyzicoPreAuthRequest extends AbstractRequest
         return $this->setParameter('enabledInstallments', $value);
     }
 
-    public function getPaymentSource(): string
+    public function getPaymentSource(): ?string
     {
         return $this->getParameter('paymentSource');
     }

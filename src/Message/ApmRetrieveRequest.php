@@ -32,7 +32,7 @@ class ApmRetrieveRequest extends AbstractRequest
         return $response;
     }
 
-    public function getPaymentId(): string
+    public function getPaymentId(): ?string
     {
         return $this->getParameter('paymentId');
     }

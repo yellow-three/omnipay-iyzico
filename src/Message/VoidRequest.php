@@ -39,7 +39,7 @@ class VoidRequest extends AbstractRequest
         return $response;
     }
 
-    public function getReason(): string
+    public function getReason(): ?string
     {
         return $this->getParameter('reason');
     }

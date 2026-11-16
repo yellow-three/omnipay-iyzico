@@ -69,7 +69,7 @@ class PayWithIyzicoInitializeRequest extends AbstractRequest
         return $response;
     }
 
-    public function getBasketId(): string
+    public function getBasketId(): ?string
     {
         return $this->getParameter('basketId');
     }
@@ -79,7 +79,7 @@ class PayWithIyzicoInitializeRequest extends AbstractRequest
         return $this->setParameter('basketId', $value);
     }
 
-    public function getEnabledInstallments(): array
+    public function getEnabledInstallments(): ?array
     {
         return $this->getParameter('enabledInstallments') ?? [];
     }
@@ -89,7 +89,7 @@ class PayWithIyzicoInitializeRequest extends AbstractRequest
         return $this->setParameter('enabledInstallments', $value);
     }
 
-    public function getPaymentSource(): string
+    public function getPaymentSource(): ?string
     {
         return $this->getParameter('paymentSource');
     }
