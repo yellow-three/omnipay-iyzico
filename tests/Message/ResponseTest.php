@@ -554,6 +554,76 @@ class ResponseTest extends TestCase
         $this->assertSame([], $response->getPaymentTransactionIds());
     }
 
+    // ─── documented field getters ─────────────────────────────────────────
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('stringFieldGetters')]
+    public function testStringFieldGetters(string $getter, string $field): void
+    {
+        $present = new Response($this->createMock(RequestInterface::class), [$field => 'value']);
+        $numeric = new Response($this->createMock(RequestInterface::class), [$field => 454359]);
+        $absent = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+
+        $this->assertSame('value', $present->{$getter}());
+        $this->assertSame('454359', $numeric->{$getter}());
+        $this->assertNull($absent->{$getter}());
+    }
+
+    public static function stringFieldGetters(): array
+    {
+        $fields = [
+            'cardType', 'cardAssociation', 'cardFamily', 'binNumber', 'lastFourDigits', 'authCode',
+            'connectorName', 'bankName', 'bankCode', 'externalId', 'cardAlias', 'cardBankCode',
+            'cardBankName', 'signature', 'mdStatus', 'callbackUrl', 'paymentPageUrl',
+            'payWithIyzicoPageUrl', 'payWithIyzicoContent',
+        ];
+
+        return array_map(static fn (string $f) => ['get' . ucfirst($f), $f], $fields);
+    }
+
+    public function testGetCommercialAndInstallmentDetails(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'commercial' => '1',
+            'installmentDetails' => [['binNumber' => '454359']],
+        ]);
+        $empty = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+
+        $this->assertSame(1, $response->getCommercial());
+        $this->assertSame([['binNumber' => '454359']], $response->getInstallmentDetails());
+        $this->assertNull($empty->getCommercial());
+        $this->assertNull($empty->getInstallmentDetails());
+    }
+
+    public function testGetPaymentTransactionIdFallsBackToFirstBasketItem(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'itemTransactions' => [['paymentTransactionId' => 111], ['paymentTransactionId' => 222]],
+        ]);
+        $empty = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+
+        $this->assertSame('111', $response->getPaymentTransactionId());
+        $this->assertSame('111', $response->getTransactionId());
+        $this->assertNull($empty->getPaymentTransactionId());
+    }
+
+    /**
+     * Every method listed in the README "Response Methods" table must exist.
+     */
+    public function testReadmeResponseMethodsExist(): void
+    {
+        $readme = file_get_contents(__DIR__ . '/../../README.md');
+        preg_match_all('/^\| `([a-zA-Z]+)\(\)` \|/m', $readme, $matches);
+
+        $this->assertNotEmpty($matches[1]);
+
+        foreach (array_unique($matches[1]) as $method) {
+            $this->assertTrue(
+                method_exists(\Omnipay\Iyzico\Message\RedirectResponse::class, $method),
+                "README documents {$method}() but it does not exist"
+            );
+        }
+    }
+
     // ─── IYZICO_FIELDS constant tests ─────────────────────────────────────
 
     public function testIyzicoFieldsIncludesNewEntries(): void

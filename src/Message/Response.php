@@ -120,7 +120,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface
 
     public function getTransactionId(): ?string
     {
-        return $this->data['paymentTransactionId'] ?? null;
+        return $this->getPaymentTransactionId();
     }
 
     public function getMessage(): ?string
@@ -180,6 +180,135 @@ class Response extends AbstractResponse implements RedirectResponseInterface
         }
 
         return $ids;
+    }
+
+    /**
+     * Read a scalar response field as a string (iyzico sends some of these, e.g.
+     * binNumber or mdStatus, as JSON numbers).
+     */
+    private function stringField(string $field): ?string
+    {
+        $value = $this->data[$field] ?? null;
+
+        return is_scalar($value) ? (string) $value : null;
+    }
+
+    public function getCardType(): ?string
+    {
+        return $this->stringField('cardType');
+    }
+
+    public function getCardAssociation(): ?string
+    {
+        return $this->stringField('cardAssociation');
+    }
+
+    public function getCardFamily(): ?string
+    {
+        return $this->stringField('cardFamily');
+    }
+
+    public function getBinNumber(): ?string
+    {
+        return $this->stringField('binNumber');
+    }
+
+    public function getLastFourDigits(): ?string
+    {
+        return $this->stringField('lastFourDigits');
+    }
+
+    public function getAuthCode(): ?string
+    {
+        return $this->stringField('authCode');
+    }
+
+    public function getConnectorName(): ?string
+    {
+        return $this->stringField('connectorName');
+    }
+
+    public function getBankName(): ?string
+    {
+        return $this->stringField('bankName');
+    }
+
+    public function getBankCode(): ?string
+    {
+        return $this->stringField('bankCode');
+    }
+
+    public function getExternalId(): ?string
+    {
+        return $this->stringField('externalId');
+    }
+
+    public function getCardAlias(): ?string
+    {
+        return $this->stringField('cardAlias');
+    }
+
+    public function getCardBankCode(): ?string
+    {
+        return $this->stringField('cardBankCode');
+    }
+
+    public function getCardBankName(): ?string
+    {
+        return $this->stringField('cardBankName');
+    }
+
+    public function getSignature(): ?string
+    {
+        return $this->stringField('signature');
+    }
+
+    public function getMdStatus(): ?string
+    {
+        return $this->stringField('mdStatus');
+    }
+
+    public function getCallbackUrl(): ?string
+    {
+        return $this->stringField('callbackUrl');
+    }
+
+    public function getPaymentPageUrl(): ?string
+    {
+        return $this->stringField('paymentPageUrl');
+    }
+
+    public function getPayWithIyzicoPageUrl(): ?string
+    {
+        return $this->stringField('payWithIyzicoPageUrl');
+    }
+
+    public function getPayWithIyzicoContent(): ?string
+    {
+        return $this->stringField('payWithIyzicoContent');
+    }
+
+    public function getCommercial(): ?int
+    {
+        $value = $this->data['commercial'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    public function getInstallmentDetails(): ?array
+    {
+        $value = $this->data['installmentDetails'] ?? null;
+
+        return is_array($value) ? $value : null;
+    }
+
+    /**
+     * paymentTransactionId of the first basket item (iyzico only reports it per item).
+     * Use getPaymentTransactionIds() when the basket has more than one item.
+     */
+    public function getPaymentTransactionId(): ?string
+    {
+        return $this->stringField('paymentTransactionId') ?? ($this->getPaymentTransactionIds()[0] ?? null);
     }
 
     public function getPaidPrice(): ?string
