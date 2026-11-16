@@ -6,6 +6,9 @@ use Omnipay\Common\Message\NotificationInterface;
 
 class AcceptNotificationRequest extends AbstractRequest implements NotificationInterface
 {
+    /** Notification payload fields that are not request parameters. */
+    protected array $data = [];
+
     public function initialize(array $parameters = [])
     {
         $notificationData = [];

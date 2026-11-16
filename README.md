@@ -107,6 +107,13 @@ $response = $gateway->refund([
 ])->send();
 ```
 
+iyzico refunds per basket item. The `paymentTransactionId` values of a payment are
+available on the purchase / `fetchTransaction()` response:
+
+```php
+$ids = $response->getPaymentTransactionIds(); // one per basket item, in basket order
+```
+
 ### Void
 
 ```php
@@ -203,11 +210,39 @@ $response = $gateway->fetchInstallment([
 Save, list, and delete user cards for future purchases:
 
 ```php
-// Save a card
+// Save a user's first card — omit cardUserKey, iyzico generates it
 $response = $gateway->createCard([
     'card' => $cardData,
     'email' => 'user@example.com',
-    'cardUserKey' => 'user_key_123',
+])->send();
+
+$cardUserKey = $response->getCardUserKey();
+$cardToken = $response->getCardToken();
+
+// Add another card to the same user
+$response = $gateway->createCard([
+    'card' => $otherCardData,
+    'email' => 'user@example.com',
+    'cardUserKey' => $cardUserKey,
+])->send();
+
+// Pay with a saved card: `card` then only carries buyer/address details
+$response = $gateway->purchase([
+    'amount' => '100.00',
+    'cardToken' => $cardToken,
+    'cardUserKey' => $cardUserKey,
+    'card' => $buyerAndAddressData,
+    'identityNumber' => '11111111111',
+    'secure3d' => false,
+])->send();
+
+// Or save the card while paying
+$response = $gateway->purchase([
+    'amount' => '100.00',
+    'card' => $cardData,
+    'registerCard' => true,
+    'identityNumber' => '11111111111',
+    'secure3d' => false,
 ])->send();
 
 // List saved cards

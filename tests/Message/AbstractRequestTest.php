@@ -381,6 +381,35 @@ class AbstractRequestTest extends TestCase
         $this->assertSame('20.00', $basketItems[1]->getPrice());
     }
 
+    public function testBuildBasketItemsSendsLineTotalWhenQuantityIsAboveOne(): void
+    {
+        // iyzico has no quantity field and basket prices must add up to the request price.
+        $this->request->setItems([
+            new Item(['name' => 'Pen', 'price' => '10.00', 'quantity' => 3]),
+            new Item(['name' => 'Book', 'price' => '19.99', 'quantity' => 1]),
+            new Item(['name' => 'Bag', 'price' => '5.50']),
+        ]);
+
+        $basketItems = $this->request->publicBuildBasketItems();
+
+        $this->assertSame('30.00', $basketItems[0]->getPrice());
+        $this->assertSame('19.99', $basketItems[1]->getPrice());
+        $this->assertSame('5.50', $basketItems[2]->getPrice());
+    }
+
+    public function testBuildPaymentCardUsesStoredCardWhenTokenAndUserKeyAreSet(): void
+    {
+        $this->request->setCardToken('tok_1');
+        $this->request->setCardUserKey('key_1');
+
+        $paymentCard = $this->request->publicBuildPaymentCard(new CreditCard(['firstName' => 'A', 'lastName' => 'B']));
+
+        $this->assertSame('tok_1', $paymentCard->getCardToken());
+        $this->assertSame('key_1', $paymentCard->getCardUserKey());
+        $this->assertNull($paymentCard->getCardNumber());
+        $this->assertNull($paymentCard->getCvc());
+    }
+
     public function testBuildBasketItemsFallbackWhenNoItems(): void
     {
         $this->request->setAmount('100.00');

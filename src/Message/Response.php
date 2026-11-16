@@ -120,7 +120,7 @@ class Response extends AbstractResponse implements RedirectResponseInterface
 
     public function getTransactionId(): ?string
     {
-        return $this->data['paymentTransactionId'] ?? null;
+        return $this->getPaymentTransactionId();
     }
 
     public function getMessage(): ?string
@@ -140,6 +140,175 @@ class Response extends AbstractResponse implements RedirectResponseInterface
     public function getPaymentId(): ?string
     {
         return $this->data['paymentId'] ?? null;
+    }
+
+    public function getCardToken(): ?string
+    {
+        return $this->data['cardToken'] ?? null;
+    }
+
+    public function getCardUserKey(): ?string
+    {
+        return $this->data['cardUserKey'] ?? null;
+    }
+
+    /**
+     * Per-basket-item breakdown of a payment. Each entry carries the
+     * paymentTransactionId that refund() needs.
+     */
+    public function getItemTransactions(): array
+    {
+        $items = $this->data['itemTransactions'] ?? [];
+
+        return is_array($items) ? $items : [];
+    }
+
+    /**
+     * paymentTransactionId of every basket item, in basket order — pass one of these
+     * as `paymentTransactionId` to refund().
+     *
+     * @return string[]
+     */
+    public function getPaymentTransactionIds(): array
+    {
+        $ids = [];
+
+        foreach ($this->getItemTransactions() as $item) {
+            if (is_array($item) && isset($item['paymentTransactionId'])) {
+                $ids[] = (string) $item['paymentTransactionId'];
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Read a scalar response field as a string (iyzico sends some of these, e.g.
+     * binNumber or mdStatus, as JSON numbers).
+     */
+    private function stringField(string $field): ?string
+    {
+        $value = $this->data[$field] ?? null;
+
+        return is_scalar($value) ? (string) $value : null;
+    }
+
+    public function getCardType(): ?string
+    {
+        return $this->stringField('cardType');
+    }
+
+    public function getCardAssociation(): ?string
+    {
+        return $this->stringField('cardAssociation');
+    }
+
+    public function getCardFamily(): ?string
+    {
+        return $this->stringField('cardFamily');
+    }
+
+    public function getBinNumber(): ?string
+    {
+        return $this->stringField('binNumber');
+    }
+
+    public function getLastFourDigits(): ?string
+    {
+        return $this->stringField('lastFourDigits');
+    }
+
+    public function getAuthCode(): ?string
+    {
+        return $this->stringField('authCode');
+    }
+
+    public function getConnectorName(): ?string
+    {
+        return $this->stringField('connectorName');
+    }
+
+    public function getBankName(): ?string
+    {
+        return $this->stringField('bankName');
+    }
+
+    public function getBankCode(): ?string
+    {
+        return $this->stringField('bankCode');
+    }
+
+    public function getExternalId(): ?string
+    {
+        return $this->stringField('externalId');
+    }
+
+    public function getCardAlias(): ?string
+    {
+        return $this->stringField('cardAlias');
+    }
+
+    public function getCardBankCode(): ?string
+    {
+        return $this->stringField('cardBankCode');
+    }
+
+    public function getCardBankName(): ?string
+    {
+        return $this->stringField('cardBankName');
+    }
+
+    public function getSignature(): ?string
+    {
+        return $this->stringField('signature');
+    }
+
+    public function getMdStatus(): ?string
+    {
+        return $this->stringField('mdStatus');
+    }
+
+    public function getCallbackUrl(): ?string
+    {
+        return $this->stringField('callbackUrl');
+    }
+
+    public function getPaymentPageUrl(): ?string
+    {
+        return $this->stringField('paymentPageUrl');
+    }
+
+    public function getPayWithIyzicoPageUrl(): ?string
+    {
+        return $this->stringField('payWithIyzicoPageUrl');
+    }
+
+    public function getPayWithIyzicoContent(): ?string
+    {
+        return $this->stringField('payWithIyzicoContent');
+    }
+
+    public function getCommercial(): ?int
+    {
+        $value = $this->data['commercial'] ?? null;
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    public function getInstallmentDetails(): ?array
+    {
+        $value = $this->data['installmentDetails'] ?? null;
+
+        return is_array($value) ? $value : null;
+    }
+
+    /**
+     * paymentTransactionId of the first basket item (iyzico only reports it per item).
+     * Use getPaymentTransactionIds() when the basket has more than one item.
+     */
+    public function getPaymentTransactionId(): ?string
+    {
+        return $this->stringField('paymentTransactionId') ?? ($this->getPaymentTransactionIds()[0] ?? null);
     }
 
     public function getPaidPrice(): ?string
@@ -234,78 +403,45 @@ class Response extends AbstractResponse implements RedirectResponseInterface
     /**
      * Get the ordered field names for signature verification by endpoint key.
      *
-     * IMPORTANT: These field orders are reverse-engineered from iyzico documentation
-     * and community examples. They MAY NOT match actual API response signatures.
-     * No code in this gateway enforces invalid signatures — the result is stored as
-     * a boolean via isSignatureValid() but is never acted upon (never blocks payment
-     * processing or triggers exceptions). Treat these values as best-effort defaults
-     * that may need adjustment based on real-world API responses.
+     * Every entry mirrors the calculateHmacSHA256Signature() call in the matching
+     * iyzipay-php sample (vendor/iyzico/iyzipay-php/samples), except "refund", which
+     * follows iyzico's response-signature documentation. Endpoints iyzico does not sign
+     * (cancel, card storage, BIN/installment lookup, marketplace, reporting, ...) are
+     * deliberately absent: applySignature() then reports null ("not verified") instead
+     * of a misleading false.
      *
-     * DO NOT change any field order values without verifying against actual API responses.
+     * The result is informational: it is exposed via isSignatureValid() and never
+     * blocks processing on its own.
      *
-     * @return array|null Ordered field names, or null if the endpoint is unknown
+     * @return array|null Ordered field names, or null if the endpoint is not signed/unknown
      */
     public static function getSignatureFieldOrder(string $endpoint): ?array
     {
+        $payment = ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'];
+        $hostedInit = ['conversationId', 'token'];
+        $hostedRetrieve = ['paymentStatus', 'paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'token'];
+
         $map = [
-            'non-3ds' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            'preauth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            'postauth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            'payment-detail' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
+            'non-3ds' => $payment,
+            'preauth' => $payment,
+            'postauth' => $payment,
+            'payment-detail' => $payment,
+            '3ds-auth' => $payment,
+            '3ds-v2-auth' => $payment,
             '3ds-init' => ['paymentId', 'conversationId'],
             '3ds-preauth-init' => ['paymentId', 'conversationId'],
-            '3ds-auth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            '3ds-v2-auth' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            'checkout-init' => ['conversationId', 'token'],
-            'pwi-init' => ['conversationId', 'token'],
-            'checkout-preauth-init' => ['conversationId', 'token'],
-            'checkout-retrieve' => ['paymentStatus', 'paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'token'],
+            'checkout-init' => $hostedInit,
+            'checkout-preauth-init' => $hostedInit,
+            'pwi-init' => $hostedInit,
+            'checkout-retrieve' => $hostedRetrieve,
             'refund' => ['paymentId', 'price', 'currency', 'conversationId'],
             'refund-v2' => ['paymentId', 'price', 'currency', 'conversationId'],
-            'cancel' => ['paymentId', 'conversationId', 'status'],
-            'settlement-to-balance' => ['paymentId', 'conversationId', 'status'],
-            'refund-to-balance' => ['paymentId', 'status'],
-            // BKM endpoints
-            'bkm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            'basic-bkm-init' => ['paymentId', 'currency', 'conversationId', 'paidPrice', 'price'],
-            'bkm-retrieve' => ['paymentId', 'conversationId', 'paymentStatus'],
-            // APM endpoints
-            'apm-init' => ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'],
-            'apm' => ['paymentId', 'currency', 'conversationId', 'price'],
-            'apm-retrieve' => ['paymentId', 'currency', 'conversationId', 'price'],
-            // Marketplace endpoints (no signature in response)
-            'marketplace-create-sub-merchant' => [],
-            'marketplace-update-sub-merchant' => [],
-            'marketplace-retrieve-sub-merchant' => [],
-            'marketplace-approve-payment' => [],
-            'marketplace-disapprove-payment' => [],
-            'marketplace-cross-booking-from' => [],
-            'marketplace-cross-booking-to' => [],
-            'marketplace-update-payment-item' => [],
-            // iyzico Link endpoints
-            'iyzilink-create' => ['paymentId', 'conversationId'],
-            // Card storage endpoints
-            'create-card' => ['cardUserKey', 'cardToken', 'status'],
-            'delete-card' => ['cardUserKey', 'cardToken', 'status'],
-            'list-cards' => ['cardUserKey', 'status'],
-            // Lookup endpoints
-            'bin-number' => ['binNumber', 'status'],
-            'installment' => ['binNumber', 'status'],
-            'loyalty' => ['cardNumber', 'status'],
-            // Reporting endpoints (no signature in response)
-            'reporting-payment-detail' => [],
-            'reporting-payment-transaction' => [],
-            'reporting-scroll-transaction' => [],
-            // Callback redirect signature verification
+            'bkm-init' => ['token', 'conversationId'],
+            'bkm-retrieve' => ['paymentId', 'paymentStatus', 'basketId', 'conversationId', 'currency', 'paidPrice', 'price', 'token'],
+            'apm-init' => ['paymentId', 'redirectUrl'],
+            'apm-retrieve' => ['currency', 'basketId', 'conversationId', 'paidPrice', 'price', 'paymentId', 'redirectUrl'],
+            // Signature POSTed to the merchant callbackUrl after the 3DS challenge.
             'callback-redirect' => ['conversationData', 'conversationId', 'mdStatus', 'paymentId', 'status'],
-            // Card management endpoints
-            'create-card' => ['cardUserKey', 'cardToken', 'status'],
-            'delete-card' => ['cardUserKey', 'cardToken', 'status'],
-            'list-cards' => ['cardUserKey', 'status'],
-            // Info lookup endpoints
-            'bin-number' => ['binNumber', 'status'],
-            'installment' => ['binNumber', 'status'],
-            'loyalty' => ['cardNumber', 'status'],
         ];
 
         return $map[$endpoint] ?? null;

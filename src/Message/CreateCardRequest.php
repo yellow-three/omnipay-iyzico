@@ -8,14 +8,16 @@ class CreateCardRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('card', 'email', 'cardUserKey');
+        // cardUserKey is only known after the first card is stored: omit it to create a
+        // new card user, pass it to add another card to an existing one.
+        $this->validate('card', 'email');
         $this->getCard()->validate();
 
         return [
             'locale' => $this->getLocale(),
             'conversationId' => $this->getConversationId(),
             'email' => $this->getEmail(),
-            'cardUserKey' => $this->getCardUserKey(),
+            'cardUserKey' => $this->getCardUserKey() ?? '',
             'externalId' => $this->getParameter('externalId') ?? '',
             'card' => $this->getCard(),
             'cardAlias' => $this->getParameter('cardAlias') ?? '',
@@ -38,8 +40,12 @@ class CreateCardRequest extends AbstractRequest
         $request->setLocale($this->mapLocale($data['locale']));
         $request->setConversationId($data['conversationId']);
         $request->setEmail($data['email']);
-        $request->setCardUserKey($data['cardUserKey']);
-        $request->setExternalId($data['externalId']);
+        if (!empty($data['cardUserKey'])) {
+            $request->setCardUserKey($data['cardUserKey']);
+        }
+        if (!empty($data['externalId'])) {
+            $request->setExternalId($data['externalId']);
+        }
         $request->setCard($paymentCard);
 
         $result = Card::create($request, $options);
