@@ -9,8 +9,8 @@ class AuthorizeRequest extends AbstractRequest
 {
     public function getData(): array
     {
-        $this->validate('card', 'amount');
-        $this->getCard()->validate();
+        $this->validate('amount');
+        $this->validateCardForPayment();
 
         return [
             'locale' => $this->getLocale(),
@@ -59,7 +59,7 @@ class AuthorizeRequest extends AbstractRequest
             $request->setCallbackUrl($data['callbackUrl']);
         }
 
-        $request->setPaymentCard($this->buildPaymentCard($card));
+        $request->setPaymentCard($this->buildPaymentCard($card, $this->getRegisterCard()));
         $request->setBuyer($this->buildBuyer($card));
         $request->setShippingAddress($this->buildShippingAddress($card));
         $request->setBillingAddress($this->buildBillingAddress($card));

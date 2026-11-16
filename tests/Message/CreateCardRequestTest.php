@@ -100,15 +100,16 @@ class CreateCardRequestTest extends TestCase
         $this->request->getData();
     }
 
-    public function testGetDataThrowsExceptionWhenCardUserKeyMissing(): void
+    public function testGetDataAllowsMissingCardUserKeyForFirstCard(): void
     {
-        $this->expectException(InvalidRequestException::class);
-        $this->expectExceptionMessage('The cardUserKey parameter is required');
-
-        $card = $this->createValidCard();
-        $this->request->setCard($card);
+        // The first card of a user has no cardUserKey yet — iyzico returns one.
+        $this->request->setCard($this->createValidCard());
         $this->request->setEmail('test@example.com');
-        $this->request->getData();
+        $this->request->setLocale('TR');
+
+        $data = $this->request->getData();
+
+        $this->assertSame('', $data['cardUserKey']);
     }
 
     public function testSendDataCallsCardCreateAndReturnsResponse(): void

@@ -143,7 +143,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('binNumber', $value);
     }
 
-    public function getCardUserKey(): string
+    public function getCardUserKey(): ?string
     {
         return $this->getParameter('cardUserKey');
     }
@@ -153,7 +153,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
         return $this->setParameter('cardUserKey', $value);
     }
 
-    public function getCardToken(): string
+    public function getCardToken(): ?string
     {
         return $this->getParameter('cardToken');
     }
@@ -161,6 +161,42 @@ abstract class AbstractRequest extends BaseAbstractRequest
     public function setCardToken(string $value): static
     {
         return $this->setParameter('cardToken', $value);
+    }
+
+    public function getRegisterCard(): bool
+    {
+        return (bool) $this->getParameter('registerCard');
+    }
+
+    /**
+     * Ask iyzico to store the card used for this payment; the response then carries
+     * cardUserKey and cardToken.
+     */
+    public function setRegisterCard(bool $value): static
+    {
+        return $this->setParameter('registerCard', $value);
+    }
+
+    /**
+     * True when the payment should be made with a card previously stored at iyzico
+     * (cardToken + cardUserKey) instead of a raw card number.
+     */
+    protected function usesStoredCard(): bool
+    {
+        return !empty($this->getCardToken()) && !empty($this->getCardUserKey());
+    }
+
+    /**
+     * Validate the card for a payment request. A stored-card payment still needs the
+     * card object for buyer/address details, but has no number/expiry/CVV to check.
+     */
+    protected function validateCardForPayment(): void
+    {
+        $this->validate('card');
+
+        if (!$this->usesStoredCard()) {
+            $this->getCard()->validate();
+        }
     }
 
     public function getEmail(): string
@@ -301,6 +337,14 @@ abstract class AbstractRequest extends BaseAbstractRequest
     protected function buildPaymentCard(CreditCard $card, bool $registerCard = false): \Iyzipay\Model\PaymentCard
     {
         $paymentCard = new \Iyzipay\Model\PaymentCard();
+
+        if ($this->usesStoredCard()) {
+            $paymentCard->setCardUserKey($this->getCardUserKey());
+            $paymentCard->setCardToken($this->getCardToken());
+
+            return $paymentCard;
+        }
+
         $paymentCard->setCardHolderName($card->getName());
         $paymentCard->setCardNumber($card->getNumber());
         $paymentCard->setExpireMonth($card->getExpiryMonth());
@@ -309,6 +353,21 @@ abstract class AbstractRequest extends BaseAbstractRequest
         $paymentCard->setRegisterCard($registerCard ? 1 : 0);
 
         return $paymentCard;
+    }
+
+    /**
+     * iyzico basket items have no quantity field and their prices must add up to the
+     * request price, so a line with quantity > 1 is sent as its line total.
+     */
+    private function lineTotal(mixed $unitPrice, mixed $quantity): mixed
+    {
+        $quantity = (int) $quantity;
+
+        if ($quantity <= 1 || !is_numeric($unitPrice)) {
+            return $unitPrice;
+        }
+
+        return number_format((float) $unitPrice * $quantity, 2, '.', '');
     }
 
     protected function buildBasketItems(): array
@@ -325,7 +384,7 @@ abstract class AbstractRequest extends BaseAbstractRequest
                 $basketItem->setCategory2($item->getDescription() ?: '');
                 $type = method_exists($item, 'getType') ? $item->getType() : ($item->getParameters()['type'] ?? null);
                 $basketItem->setItemType($type ?: \Iyzipay\Model\BasketItemType::PHYSICAL);
-                $basketItem->setPrice($item->getPrice());
+                $basketItem->setPrice($this->lineTotal($item->getPrice(), $item->getQuantity()));
                 $basketItems[] = $basketItem;
             }
         }

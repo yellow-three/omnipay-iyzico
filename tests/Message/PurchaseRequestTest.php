@@ -181,6 +181,85 @@ class PurchaseRequestTest extends TestCase
         $this->assertSame('pay_3ds_123', $response->getPaymentId());
     }
 
+    /**
+     * Send a non-3DS purchase and return the JSON body posted to iyzico.
+     */
+    private function sendAndCaptureBody(): array
+    {
+        $body = null;
+        $iyzicoHttpClient = $this->createMock(HttpClient::class);
+        $iyzicoHttpClient
+            ->expects($this->once())
+            ->method('post')
+            ->willReturnCallback(function ($url, $headers, $content) use (&$body) {
+                $body = json_decode($content, true);
+
+                return json_encode(['status' => 'success', 'paymentId' => 'pay_1']);
+            });
+        ApiResource::setHttpClient($iyzicoHttpClient);
+
+        $this->request->setAmount('100.00');
+        $this->request->setCurrency('TRY');
+        $this->request->setLocale('TR');
+        $this->request->setPaymentChannel('WEB');
+        $this->request->setPaymentGroup('PRODUCT');
+        $this->request->setSecure3d(false);
+        $this->request->send();
+
+        return $body;
+    }
+
+    public function testStoredCardPaymentSendsTokenInsteadOfCardNumber(): void
+    {
+        // No number/expiry/cvv: the card object only carries buyer details.
+        $this->request->setCard(new CreditCard([
+            'firstName' => 'Test',
+            'lastName' => 'User',
+            'email' => 'test@example.com',
+            'billingAddress1' => 'Test Address',
+            'billingCity' => 'Istanbul',
+            'billingCountry' => 'Turkey',
+        ]));
+        $this->request->setCardToken('tok_1');
+        $this->request->setCardUserKey('key_1');
+
+        $body = $this->sendAndCaptureBody();
+
+        $this->assertSame('tok_1', $body['paymentCard']['cardToken']);
+        $this->assertSame('key_1', $body['paymentCard']['cardUserKey']);
+        $this->assertArrayNotHasKey('cardNumber', $body['paymentCard']);
+    }
+
+    public function testCardNumberIsStillValidatedWithoutStoredCard(): void
+    {
+        $this->request->setCard(new CreditCard(['firstName' => 'Test', 'lastName' => 'User']));
+        $this->request->setCardToken('tok_1'); // cardUserKey missing -> not a stored-card payment
+        $this->request->setAmount('100.00');
+
+        $this->expectException(\Omnipay\Common\Exception\InvalidCreditCardException::class);
+        $this->request->getData();
+    }
+
+    public function testRegisterCardIsForwardedToIyzico(): void
+    {
+        $this->request->setCard($this->createValidCard());
+        $this->request->setRegisterCard(true);
+
+        $body = $this->sendAndCaptureBody();
+
+        $this->assertSame(1, $body['paymentCard']['registerCard']);
+        $this->assertSame('4111111111111111', $body['paymentCard']['cardNumber']);
+    }
+
+    public function testRegisterCardDefaultsToOff(): void
+    {
+        $this->request->setCard($this->createValidCard());
+
+        $body = $this->sendAndCaptureBody();
+
+        $this->assertSame(0, $body['paymentCard']['registerCard']);
+    }
+
     public function testGetDataIncludesPosOrderIdWhenSet(): void
     {
         $card = $this->createValidCard();
