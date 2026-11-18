@@ -11,7 +11,7 @@ class ResponseTest extends TestCase
     public function testIsSuccessful(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -21,7 +21,7 @@ class ResponseTest extends TestCase
     public function testIsSuccessfulWithNonSuccessStatus(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'failure']
         );
 
@@ -31,7 +31,7 @@ class ResponseTest extends TestCase
     public function testIsPending(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'pending']
         );
 
@@ -41,7 +41,7 @@ class ResponseTest extends TestCase
     public function testIsPendingWithNonPendingStatus(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -51,7 +51,7 @@ class ResponseTest extends TestCase
     public function testGetMessageWithError(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             [
                 'errorMessage' => 'Payment failed',
                 'errorCode' => '5001',
@@ -64,7 +64,7 @@ class ResponseTest extends TestCase
     public function testGetMessageWithoutError(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['message' => 'Transaction approved']
         );
 
@@ -74,7 +74,7 @@ class ResponseTest extends TestCase
     public function testGetMessageReturnsNullWhenNoMessage(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -84,7 +84,7 @@ class ResponseTest extends TestCase
     public function testGetTransactionReferenceWithPaymentId(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             [
                 'paymentId' => 'pay_123',
                 'conversationId' => 'conv_123',
@@ -97,7 +97,7 @@ class ResponseTest extends TestCase
     public function testGetTransactionReferenceFallsBackToConversationId(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['conversationId' => 'conv_123']
         );
 
@@ -107,7 +107,7 @@ class ResponseTest extends TestCase
     public function testGetTransactionReferenceReturnsNullWhenNeitherPresent(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -117,7 +117,7 @@ class ResponseTest extends TestCase
     public function testGetCheckoutFormContent(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['checkoutFormContent' => '<div>checkout form</div>']
         );
 
@@ -127,7 +127,7 @@ class ResponseTest extends TestCase
     public function testGetCheckoutFormContentReturnsNullWhenNotPresent(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -172,7 +172,7 @@ class ResponseTest extends TestCase
             public function getSignature(): string { return ''; }
         };
 
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
 
         $this->assertSame('success', $response->getStatus());
         $this->assertSame('pay_123', $response->getPaymentId());
@@ -182,7 +182,7 @@ class ResponseTest extends TestCase
     public function testNormalizeDataWithArray(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success', 'paymentId' => 'pay_123']
         );
 
@@ -193,7 +193,7 @@ class ResponseTest extends TestCase
     public function testNormalizeDataWithString(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             '{"status":"success","paymentId":"pay_123"}'
         );
 
@@ -204,7 +204,7 @@ class ResponseTest extends TestCase
     public function testNormalizeDataWithInvalidString(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             'not-json'
         );
 
@@ -215,7 +215,7 @@ class ResponseTest extends TestCase
     public function testNormalizeDataWithNull(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             null
         );
 
@@ -261,7 +261,7 @@ class ResponseTest extends TestCase
             'conversationId' => 'conv_123',
             'signature' => hash_hmac('sha256', 'pay_123:TRY:conv_123', 'test-key'),
         ];
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
 
         $this->assertTrue(
             $response->verifySignature('test-key', ['paymentId', 'currency', 'conversationId'])
@@ -276,7 +276,7 @@ class ResponseTest extends TestCase
             'conversationId' => 'conv_999', // tampered
             'signature' => '80a72cfe1a88ca9e393a51b0b66aa3b2379b8f3767c1f0e667c777f6928f4295',
         ];
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
 
         $this->assertFalse(
             $response->verifySignature('test-key', ['paymentId', 'currency', 'conversationId'])
@@ -286,7 +286,7 @@ class ResponseTest extends TestCase
     public function testVerifySignatureReturnsFalseWhenSignatureMissing(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['paymentId' => 'pay_123']
         );
 
@@ -310,7 +310,7 @@ class ResponseTest extends TestCase
             'price' => '100.50',
             'signature' => $expected,
         ];
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
 
         $this->assertTrue(
             $response->verifySignature('sekret', ['paymentId', 'currency', 'basketId', 'conversationId', 'paidPrice', 'price'])
@@ -323,7 +323,7 @@ class ResponseTest extends TestCase
      */
     public function testVerifySignatureMatchesOfficialIyzicoSampleVector(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'conversationData' => '',
             'conversationId' => '',
             'mdStatus' => '1',
@@ -344,7 +344,7 @@ class ResponseTest extends TestCase
      */
     public function testApplySignatureMatchesIyzicoDocsPaymentSample(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'paymentId' => '22416032',
             'currency' => 'TRY',
             'basketId' => 'basketId',
@@ -360,7 +360,7 @@ class ResponseTest extends TestCase
 
     public function testVerifySignatureRejectsSecretKeyPrefixedMessage(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'paymentId' => 'pay_1',
             'conversationId' => 'conv_1',
             'signature' => hash_hmac('sha256', 'test-key:pay_1:conv_1', 'test-key'),
@@ -372,7 +372,7 @@ class ResponseTest extends TestCase
     public function testIsSignatureValidReturnsNullWhenNotSet(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -382,7 +382,7 @@ class ResponseTest extends TestCase
     public function testIsSignatureValidReturnsTrueWhenSet(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -393,7 +393,7 @@ class ResponseTest extends TestCase
     public function testIsSignatureValidReturnsFalseWhenSet(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -409,7 +409,7 @@ class ResponseTest extends TestCase
             'conversationId' => 'conv_1',
             'signature' => $signature,
         ];
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
         $response->applySignature('test-key', '3ds-init');
 
         $this->assertTrue($response->isSignatureValid());
@@ -418,7 +418,7 @@ class ResponseTest extends TestCase
     public function testApplySignatureReturnsNullForUnsignedFailureResponse(): void
     {
         // Real sandbox shape of a declined payment: iyzico sends no signature on errors.
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'status' => 'failure',
             'errorCode' => '10051',
             'errorMessage' => 'Kart limiti yetersiz, yetersiz bakiye',
@@ -432,7 +432,7 @@ class ResponseTest extends TestCase
 
     public function testApplySignatureReturnsFalseForUnsignedSuccessResponse(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'status' => 'success',
             'paymentId' => 'pay_1',
         ]);
@@ -444,7 +444,7 @@ class ResponseTest extends TestCase
 
     public function testApplySignatureStillRejectsBadSignatureOnFailureResponse(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'status' => 'failure',
             'paymentId' => 'pay_1',
             'signature' => 'forged',
@@ -458,7 +458,7 @@ class ResponseTest extends TestCase
     public function testApplySignatureReturnsNullForUnknownEndpoint(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -502,7 +502,7 @@ class ResponseTest extends TestCase
         };
 
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             $mock
         );
 
@@ -541,7 +541,7 @@ class ResponseTest extends TestCase
         $this->assertNull(Response::getSignatureFieldOrder($endpoint));
 
         // iyzico sends no signature here, so "not verified" (null) — not "invalid" (false).
-        $response = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $response = new Response($this->createStub(RequestInterface::class), ['status' => 'success']);
         $response->applySignature('test-key', $endpoint);
 
         $this->assertNull($response->isSignatureValid());
@@ -564,7 +564,7 @@ class ResponseTest extends TestCase
             'redirectUrl' => 'https://bank.example/pay',
             'signature' => hash_hmac('sha256', 'pay_1:https://bank.example/pay', 'test-key'),
         ];
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
         $response->applySignature('test-key', 'apm-init');
 
         $this->assertTrue($response->isSignatureValid());
@@ -575,7 +575,7 @@ class ResponseTest extends TestCase
     public function testGetCardTokenAndCardUserKey(): void
     {
         $response = new Response(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success', 'cardToken' => 'tok_1', 'cardUserKey' => 'key_1']
         );
 
@@ -585,7 +585,7 @@ class ResponseTest extends TestCase
 
     public function testGetCardTokenAndCardUserKeyDefaultToNull(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $response = new Response($this->createStub(RequestInterface::class), ['status' => 'success']);
 
         $this->assertNull($response->getCardToken());
         $this->assertNull($response->getCardUserKey());
@@ -593,7 +593,7 @@ class ResponseTest extends TestCase
 
     public function testGetPaymentTransactionIdsReadsItemTransactions(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'status' => 'success',
             'itemTransactions' => [
                 ['itemId' => 'A', 'paymentTransactionId' => '111'],
@@ -608,7 +608,7 @@ class ResponseTest extends TestCase
 
     public function testGetPaymentTransactionIdsIsEmptyWithoutItemTransactions(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $response = new Response($this->createStub(RequestInterface::class), ['status' => 'success']);
 
         $this->assertSame([], $response->getItemTransactions());
         $this->assertSame([], $response->getPaymentTransactionIds());
@@ -619,9 +619,9 @@ class ResponseTest extends TestCase
     #[\PHPUnit\Framework\Attributes\DataProvider('stringFieldGetters')]
     public function testStringFieldGetters(string $getter, string $field): void
     {
-        $present = new Response($this->createMock(RequestInterface::class), [$field => 'value']);
-        $numeric = new Response($this->createMock(RequestInterface::class), [$field => 454359]);
-        $absent = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $present = new Response($this->createStub(RequestInterface::class), [$field => 'value']);
+        $numeric = new Response($this->createStub(RequestInterface::class), [$field => 454359]);
+        $absent = new Response($this->createStub(RequestInterface::class), ['status' => 'success']);
 
         $this->assertSame('value', $present->{$getter}());
         $this->assertSame('454359', $numeric->{$getter}());
@@ -642,11 +642,11 @@ class ResponseTest extends TestCase
 
     public function testGetCommercialAndInstallmentDetails(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'commercial' => '1',
             'installmentDetails' => [['binNumber' => '454359']],
         ]);
-        $empty = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $empty = new Response($this->createStub(RequestInterface::class), ['status' => 'success']);
 
         $this->assertSame(1, $response->getCommercial());
         $this->assertSame([['binNumber' => '454359']], $response->getInstallmentDetails());
@@ -656,10 +656,10 @@ class ResponseTest extends TestCase
 
     public function testGetPaymentTransactionIdFallsBackToFirstBasketItem(): void
     {
-        $response = new Response($this->createMock(RequestInterface::class), [
+        $response = new Response($this->createStub(RequestInterface::class), [
             'itemTransactions' => [['paymentTransactionId' => 111], ['paymentTransactionId' => 222]],
         ]);
-        $empty = new Response($this->createMock(RequestInterface::class), ['status' => 'success']);
+        $empty = new Response($this->createStub(RequestInterface::class), ['status' => 'success']);
 
         $this->assertSame('111', $response->getPaymentTransactionId());
         $this->assertSame('111', $response->getTransactionId());
@@ -716,7 +716,7 @@ class ResponseTest extends TestCase
             'conversationId' => 'conv_1',
             'signature' => 'wrong_signature_value_that_does_not_match',
         ];
-        $response = new Response($this->createMock(RequestInterface::class), $data);
+        $response = new Response($this->createStub(RequestInterface::class), $data);
         $response->applySignature('test-key', '3ds-init');
 
         $this->assertFalse($response->isSignatureValid());

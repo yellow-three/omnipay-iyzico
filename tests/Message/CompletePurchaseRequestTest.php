@@ -15,8 +15,8 @@ class CompletePurchaseRequestTest extends TestCase
 
     protected function setUp(): void
     {
-        $httpClient = $this->createMock(\Omnipay\Common\Http\ClientInterface::class);
-        $httpRequest = $this->createMock(\Symfony\Component\HttpFoundation\Request::class);
+        $httpClient = $this->createStub(\Omnipay\Common\Http\ClientInterface::class);
+        $httpRequest = $this->createStub(\Symfony\Component\HttpFoundation\Request::class);
 
         $this->request = new CompletePurchaseRequest($httpClient, $httpRequest);
         $this->request->setApiKey('test-api-key');
@@ -186,7 +186,7 @@ class CompletePurchaseRequestTest extends TestCase
 
     private function mockIyzicoHttpClient(string $responseJson): void
     {
-        $mockSdkHttp = $this->createMock(HttpClient::class);
+        $mockSdkHttp = $this->createStub(HttpClient::class);
         $mockSdkHttp->method('post')->willReturn($responseJson);
 
         ApiResource::setHttpClient($mockSdkHttp);

@@ -18,8 +18,8 @@ class CheckoutFormPreAuthRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpRequest = $this->createMock(HttpRequest::class);
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpRequest = $this->createStub(HttpRequest::class);
         $this->request = new CheckoutFormPreAuthRequest($httpClient, $httpRequest);
     }
 

@@ -26,7 +26,7 @@
         "iyzico/iyzipay-php": "^2.0.64"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0 || ^11.0",
+        "phpunit/phpunit": "^10.0 || ^11.0 || ^12.0",
         "php-http/guzzle7-adapter": "^1.1"
     },
     "scripts": {

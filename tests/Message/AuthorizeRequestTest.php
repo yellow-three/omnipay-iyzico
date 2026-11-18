@@ -2,6 +2,7 @@
 
 namespace Omnipay\Iyzico\Tests\Message;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use Iyzipay\ApiResource;
 use Omnipay\Common\Exception\InvalidCreditCardException;
 use Omnipay\Common\Exception\InvalidRequestException;
@@ -20,19 +21,25 @@ class AuthorizeRequestTest extends TestCase
 
     private HttpRequest $httpRequest;
 
-    private \Iyzipay\HttpClient $iyzicoHttpClient;
-
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock(ClientInterface::class);
+        $this->httpClient = $this->createStub(ClientInterface::class);
         $this->httpRequest = new HttpRequest();
 
         $this->request = new AuthorizeRequest($this->httpClient, $this->httpRequest);
 
-        // Inject a mock HTTP client into the iyzico SDK so PaymentPreAuth::create()
-        // and ThreedsInitialize::create() don't make real API calls.
-        $this->iyzicoHttpClient = $this->createMock(\Iyzipay\HttpClient::class);
-        ApiResource::setHttpClient($this->iyzicoHttpClient);
+        // Inject a stub HTTP client into the iyzico SDK so PaymentPreAuth::create()
+        // and ThreedsInitialize::create() never make real API calls.
+        ApiResource::setHttpClient($this->createStub(\Iyzipay\HttpClient::class));
+    }
+
+    /** Replace the SDK HTTP client with a mock for tests that set expectations. */
+    private function mockIyzicoHttpClient(): MockObject&\Iyzipay\HttpClient
+    {
+        $client = $this->createMock(\Iyzipay\HttpClient::class);
+        ApiResource::setHttpClient($client);
+
+        return $client;
     }
 
     protected function tearDown(): void
@@ -254,7 +261,7 @@ class AuthorizeRequestTest extends TestCase
 
         $jsonResponse = $this->buildPaymentPreAuthJson();
 
-        $this->iyzicoHttpClient
+        $this->mockIyzicoHttpClient()
             ->expects($this->once())
             ->method('post')
             ->with(
@@ -292,7 +299,7 @@ class AuthorizeRequestTest extends TestCase
             'systemTime' => 1719000000,
         ]);
 
-        $this->iyzicoHttpClient
+        $this->mockIyzicoHttpClient()
             ->expects($this->once())
             ->method('post')
             ->willReturn($errorJson);
@@ -322,7 +329,7 @@ class AuthorizeRequestTest extends TestCase
 
         $jsonResponse = $this->buildThreedsInitializeJson();
 
-        $this->iyzicoHttpClient
+        $this->mockIyzicoHttpClient()
             ->expects($this->once())
             ->method('post')
             ->with(
@@ -355,7 +362,7 @@ class AuthorizeRequestTest extends TestCase
 
         $jsonResponse = $this->buildThreedsInitializeJson();
 
-        $this->iyzicoHttpClient
+        $this->mockIyzicoHttpClient()
             ->expects($this->once())
             ->method('post')
             ->willReturn($jsonResponse);
@@ -387,7 +394,7 @@ class AuthorizeRequestTest extends TestCase
             'systemTime' => 1719000000,
         ]);
 
-        $this->iyzicoHttpClient
+        $this->mockIyzicoHttpClient()
             ->expects($this->once())
             ->method('post')
             ->willReturn($errorJson);
