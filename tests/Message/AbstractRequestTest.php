@@ -2,6 +2,7 @@
 
 namespace Omnipay\Iyzico\Tests\Message;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Iyzipay\Model\Currency as IyzicoCurrency;
 use Iyzipay\Model\Locale as IyzicoLocale;
 use Iyzipay\Model\PaymentChannel as IyzicoPaymentChannel;
@@ -152,7 +153,7 @@ class AbstractRequestTest extends TestCase
 
     // ─── mapLocale Tests ────────────────────────────────────────────────────
 
-    /** @dataProvider localeProvider */
+    #[DataProvider('localeProvider')]
     public function testMapLocale(string $input, string $expected): void
     {
         $this->assertSame($expected, $this->request->publicMapLocale($input));
@@ -172,7 +173,7 @@ class AbstractRequestTest extends TestCase
 
     // ─── mapCurrency Tests ──────────────────────────────────────────────────
 
-    /** @dataProvider currencyProvider */
+    #[DataProvider('currencyProvider')]
     public function testMapCurrency(string $input, string $expected): void
     {
         $this->assertSame($expected, $this->request->publicMapCurrency($input));
@@ -211,7 +212,7 @@ class AbstractRequestTest extends TestCase
 
     // ─── mapPaymentChannel Tests ────────────────────────────────────────────
 
-    /** @dataProvider paymentChannelProvider */
+    #[DataProvider('paymentChannelProvider')]
     public function testMapPaymentChannel(string $input, string $expected): void
     {
         $this->assertSame($expected, $this->request->publicMapPaymentChannel($input));
@@ -232,7 +233,7 @@ class AbstractRequestTest extends TestCase
 
     // ─── mapPaymentGroup Tests ──────────────────────────────────────────────
 
-    /** @dataProvider paymentGroupProvider */
+    #[DataProvider('paymentGroupProvider')]
     public function testMapPaymentGroup(string $input, string $expected): void
     {
         $this->assertSame($expected, $this->request->publicMapPaymentGroup($input));
