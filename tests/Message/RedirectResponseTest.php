@@ -11,7 +11,7 @@ class RedirectResponseTest extends TestCase
     public function testIsRedirectWithHtmlContent(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success', 'htmlContent' => '<form>...</form>']
         );
 
@@ -21,7 +21,7 @@ class RedirectResponseTest extends TestCase
     public function testGetRedirectResponseServesHtmlContentWhenThereIsNoUrl(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success', 'htmlContent' => '<form id="3ds">...</form>']
         );
 
@@ -34,7 +34,7 @@ class RedirectResponseTest extends TestCase
     public function testGetRedirectResponseRedirectsToUrlWhenPresent(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success', 'checkoutFormContent' => '<script></script>']
         );
         $response->setRedirectUrl('https://sandbox-api.iyzipay.com/pay');
@@ -48,7 +48,7 @@ class RedirectResponseTest extends TestCase
     public function testGetRedirectResponseThrowsWhenNotARedirect(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'failure', 'htmlContent' => '<form></form>']
         );
 
@@ -59,7 +59,7 @@ class RedirectResponseTest extends TestCase
     public function testIsRedirectWithRedirectUrl(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
         $response->setRedirectUrl('https://sandbox-api.iyzipay.com/payment');
@@ -70,7 +70,7 @@ class RedirectResponseTest extends TestCase
     public function testIsRedirectWithoutHtmlContentAndWithoutUrlReturnsFalse(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -80,7 +80,7 @@ class RedirectResponseTest extends TestCase
     public function testIsRedirectWithNonSuccessStatusReturnsFalse(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'failure', 'htmlContent' => '<form>...</form>']
         );
 
@@ -90,7 +90,7 @@ class RedirectResponseTest extends TestCase
     public function testGetHtmlContentFromHtmlContentField(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             [
                 'status' => 'success',
                 'htmlContent' => '<form>3ds</form>',
@@ -104,7 +104,7 @@ class RedirectResponseTest extends TestCase
     public function testGetHtmlContentFallsBackToCheckoutFormContent(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             [
                 'status' => 'success',
                 'checkoutFormContent' => '<div>checkout</div>',
@@ -117,7 +117,7 @@ class RedirectResponseTest extends TestCase
     public function testGetHtmlContentReturnsNullWhenNeitherPresent(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -127,7 +127,7 @@ class RedirectResponseTest extends TestCase
     public function testSetAndGetRedirectUrl(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -138,7 +138,7 @@ class RedirectResponseTest extends TestCase
     public function testGetRedirectUrlDefaultsToEmptyString(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -148,7 +148,7 @@ class RedirectResponseTest extends TestCase
     public function testSetAndGetRedirectMethod(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -159,7 +159,7 @@ class RedirectResponseTest extends TestCase
     public function testSetRedirectMethodIsUppercased(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -170,7 +170,7 @@ class RedirectResponseTest extends TestCase
     public function testDefaultRedirectMethodIsPost(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -180,7 +180,7 @@ class RedirectResponseTest extends TestCase
     public function testSetAndGetRedirectData(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 
@@ -191,7 +191,7 @@ class RedirectResponseTest extends TestCase
     public function testDefaultRedirectDataIsEmptyArray(): void
     {
         $response = new RedirectResponse(
-            $this->createMock(RequestInterface::class),
+            $this->createStub(RequestInterface::class),
             ['status' => 'success']
         );
 

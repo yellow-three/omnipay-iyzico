@@ -16,8 +16,8 @@ class ListCustomersRequestTest extends TestCase
 
     protected function setUp(): void
     {
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpRequest = $this->createMock(HttpRequest::class);
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpRequest = $this->createStub(HttpRequest::class);
         $this->request = new ListCustomersRequest($httpClient, $httpRequest);
     }
 

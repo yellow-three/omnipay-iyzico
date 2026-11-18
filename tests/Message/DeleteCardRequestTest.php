@@ -19,8 +19,8 @@ class DeleteCardRequestTest extends TestCase
     {
         parent::setUp();
 
-        $httpClient = $this->createMock(ClientInterface::class);
-        $httpRequest = $this->createMock(HttpRequest::class);
+        $httpClient = $this->createStub(ClientInterface::class);
+        $httpRequest = $this->createStub(HttpRequest::class);
         $this->request = new DeleteCardRequest($httpClient, $httpRequest);
 
         $this->request->setApiKey('test-api-key');
