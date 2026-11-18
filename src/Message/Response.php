@@ -460,6 +460,14 @@ class Response extends AbstractResponse implements RedirectResponseInterface
             return;
         }
 
+        // iyzico does not sign error responses. A missing signature there means
+        // "nothing to verify", not "tampered"; a success response without one is
+        // still reported as invalid.
+        if (empty($this->data['signature']) && ($this->data['status'] ?? null) !== 'success') {
+            $this->setSignatureValid(null);
+            return;
+        }
+
         $isValid = $this->verifySignature($secretKey, $fieldOrder);
         $this->setSignatureValid($isValid);
     }

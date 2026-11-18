@@ -415,6 +415,46 @@ class ResponseTest extends TestCase
         $this->assertTrue($response->isSignatureValid());
     }
 
+    public function testApplySignatureReturnsNullForUnsignedFailureResponse(): void
+    {
+        // Real sandbox shape of a declined payment: iyzico sends no signature on errors.
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'status' => 'failure',
+            'errorCode' => '10051',
+            'errorMessage' => 'Kart limiti yetersiz, yetersiz bakiye',
+            'conversationId' => 'conv_1',
+        ]);
+
+        $response->applySignature('test-key', 'non-3ds');
+
+        $this->assertNull($response->isSignatureValid());
+    }
+
+    public function testApplySignatureReturnsFalseForUnsignedSuccessResponse(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'status' => 'success',
+            'paymentId' => 'pay_1',
+        ]);
+
+        $response->applySignature('test-key', 'non-3ds');
+
+        $this->assertFalse($response->isSignatureValid());
+    }
+
+    public function testApplySignatureStillRejectsBadSignatureOnFailureResponse(): void
+    {
+        $response = new Response($this->createMock(RequestInterface::class), [
+            'status' => 'failure',
+            'paymentId' => 'pay_1',
+            'signature' => 'forged',
+        ]);
+
+        $response->applySignature('test-key', 'non-3ds');
+
+        $this->assertFalse($response->isSignatureValid());
+    }
+
     public function testApplySignatureReturnsNullForUnknownEndpoint(): void
     {
         $response = new Response(
